@@ -1,11 +1,12 @@
 OPAL = sholden@opal5.opalstack.com
-APPDIR = /home/sholden/apps/holdenweb_flask
-ENVDIR = ${APPDIR}/envs/${VERSION}
-RELDIR = ${APPDIR}/apps/${VERSION}
+HOME = /home/sholden
+APPDIR = apps/holdenweb_flask
+ENVDIR = envs/${VERSION}
+RELDIR = apps/${VERSION}
 PYTHON = python3.11
 
-#uwsgi.ini: uwsgi.j2 release.json
-#	jinja -D version ${VERSION} uwsgi.j2 > release/uwsgi.ini
+report:
+	echo app: ${APPDIR} envs: ${ENVDIR} myapp: ${RELDIR}
 
 init:
 	ssh ${OPAL} " \
@@ -18,12 +19,12 @@ init:
 		ln -s apps/orig myapp"
 
 deploy:
-	scp -r release/ ${OPAL}:${RELDIR}
-	ssh ${OPAL} "${PYTHON} -m venv ${ENVDIR} ; \
-		ln -s ../../envs/orig/bin/uwsgi ${ENVDIR}/bin ; \
-		ln -s ../../envs/orig/bin/sqlformat ${ENVDIR}/bin ; \
+	scp -vr release/ ${OPAL}:${HOME}/${APPDIR}/${RELDIR}
+	ssh ${OPAL} "cd ${APPDIR} ; \
+		${PYTHON} -m venv ${ENVDIR} ; \
+		ln -s ../../../envs/orig/bin/uwsgi ${ENVDIR}/bin ; \
 		source ${ENVDIR}/bin/activate ; \
 		pip install -r ${RELDIR}/requirements.txt ; \
  		echo "Directory:" ; pwd ; \
-		rm ${APPDIR}/myapp ; ln -s ${RELDIR} ${APPDIR}/myapp ; \
-		rm ${APPDIR}/env ; ln -s ${ENVDIR} ${APPDIR}/env"
+		rm myapp ; ln -s ${RELDIR} myapp ; \
+		rm env ; ln -s ${ENVDIR} env"
