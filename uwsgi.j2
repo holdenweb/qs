@@ -1,0 +1,10 @@
+[uwsgi]
+master = True
+http-socket = 127.0.0.1:17820
+virtualenv = /home/sholden/apps/holdenweb_flask/envs/{{version}}
+daemonize = /home/sholden/logs/apps/holdenweb_flask/uwsgi.log
+pidfile = /home/sholden/apps/holdenweb_flask/tmp/holdenweb_flask.pid
+workers = 2
+threads = 2
+module = app:app
+touch-reload = /home/sholden/apps/holdenweb_flask/{{version}}/app.py
