@@ -3,7 +3,7 @@ HOME = /home/sholden
 APPDIR = apps/holdenweb_flask
 ENVDIR = envs/${VERSION}
 RELDIR = apps/${VERSION}
-PYTHON = python3.11
+PYTHON = python3.10
 
 report:
 	echo app: ${APPDIR} envs: ${ENVDIR} myapp: ${RELDIR}
@@ -19,7 +19,7 @@ init:
 		ln -s apps/orig myapp"
 
 deploy:
-	scp -vr release/ ${OPAL}:${HOME}/${APPDIR}/${RELDIR}
+	scp -r release/ ${OPAL}:${HOME}/${APPDIR}/${RELDIR}
 	ssh ${OPAL} "cd ${APPDIR} ; \
 		${PYTHON} -m venv ${ENVDIR} ; \
 		ln -s ../../../envs/orig/bin/uwsgi ${ENVDIR}/bin ; \
