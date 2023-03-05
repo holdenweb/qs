@@ -11,6 +11,8 @@ import pdfrw
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+appfile_dir = os.path.dirname(__file__)
+
 class PDF_Form(FlaskForm):
     file_details = FileField('file_details', validators=[DataRequired()])
     file_prefix = StringField('file_prefix')
@@ -22,14 +24,20 @@ app.config['SECRET_KEY'] = "lkjahskdflkjad[pouaerpoiuqt"
 application = app.wsgi_app
 
 env = Environment(
-    loader=FileSystemLoader('%s/templates/' % os.path.dirname(__file__)),
+    loader=FileSystemLoader('%s/templates/' % appfile_dir),
     autoescape=select_autoescape(['html', 'xml'])
 )
 logger = getLogger(__name__)
 
 
-@app.route("/", methods=['GET', 'POST'])
-def get_or_post():
+@app.route("/")
+def home_page():
+    with open(os.path.join(appfile_dir, "index.html")) as f:
+        return f.read()
+
+
+@app.route("/pdf", methods=['GET', 'POST'])
+def get_or_post_pdf():
     form = PDF_Form()
     logger.info(f"Called")
     if form.validate_on_submit():
