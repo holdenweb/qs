@@ -1,3 +1,4 @@
+import os
 import sys
 from io import BytesIO
 from flask import Flask, render_template, flash, send_file, redirect, request
@@ -8,8 +9,7 @@ from zipfile import ZipFile
 from logging import getLogger
 import pdfrw
 
-from jinja2 import Environment, PackageLoader, select_autoescape
-
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 class PDF_Form(FlaskForm):
     file_details = FileField('file_details', validators=[DataRequired()])
@@ -17,23 +17,14 @@ class PDF_Form(FlaskForm):
     submit = SubmitField('Get Pages')
 
 
-class WebFactionMiddleware(object):
-    def __init__(self, app):
-        self.app = app
-    def __call__(self, environ, start_response):
-        environ['SCRIPT_NAME'] = '/pz'
-        return self.app(environ, start_response)
-
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "lkjahskdflkjad[pouaerpoiuqt"
-# app.wsgi_app = WebFactionMiddleware(app.wsgi_app)
+application = app.wsgi_app
 
 env = Environment(
-    loader=PackageLoader('app', 'templates'),
+    loader=FileSystemLoader('%s/templates/' % os.path.dirname(__file__)),
     autoescape=select_autoescape(['html', 'xml'])
 )
-
 logger = getLogger(__name__)
 
 
