@@ -1,3 +1,4 @@
 pdfrw
 flask
 flask-wtf
+qrcode

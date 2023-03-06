@@ -1,0 +1,10 @@
+#!/bin/bash
+
+PIDFILE="$HOME/apps/production/tmp/production.pid"
+if [ -e "${PIDFILE}" ] && (ps -u $(whoami) -opid= |
+                           grep -P "^\s*$(cat ${PIDFILE})$" &> /dev/null); then
+/home/sholden/apps/production/env/bin/uwsgi --stop /home/sholden/apps/production/tmp/production.pid
+rm  /home/sholden/apps/production/tmp/production.pid
+  exit 99
+fi
+echo "No PID file"

@@ -1,0 +1,10 @@
+#!/bin/bash
+PIDFILE="$HOME/apps/production/tmp/production.pid"
+if [ -e "${PIDFILE}" ] && (ps -u $(whoami) -opid= |
+                           grep -P "^\s*$(cat ${PIDFILE})$" &> /dev/null); then
+  echo "Already running."
+  exit 99
+fi
+echo -n 'Started at '
+date "+%Y-%m-%d %H:%M:%S"
+/home/sholden/apps/production/env/bin/uwsgi --ini /home/sholden/apps/production/uwsgi.ini
