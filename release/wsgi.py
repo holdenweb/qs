@@ -2,6 +2,7 @@ import os
 import io
 import sys
 from io import BytesIO
+from booklet import make_booklet
 from flask import Flask, Response, render_template, flash, send_file, redirect, request, url_for
 from flask_wtf import FlaskForm
 import qrcode
@@ -31,6 +32,10 @@ class QRcode_Form(FlaskForm):
     qrcode_text = StringField('qrcode_text')
     submit = SubmitField('Get QR Code')
 
+class BookletForm(FlaskForm):
+    file_details = FileField('file_details', validators=[DataRequired()])
+    submit = SubmitField("Generate Booklet")
+
 env = Environment(
     loader=FileSystemLoader('%s/templates/' % appfile_dir),
     autoescape=select_autoescape(['html', 'xml'])
@@ -38,23 +43,6 @@ env = Environment(
 logger = getLogger(__name__)
 
 
-print("Register: /qrcode")
-@app.route("/qrcode", methods=['GET', 'POST'])
-def get_or_post_qrcode():
-    form = QRcode_Form()
-    logger.info(f"QR code requested")
-    if form.validate_on_submit():
-        text = request.form['qrcode_text']
-        qr = qrcode.make(text)
-        memfile = io.BytesIO()
-        qr.save(memfile)
-        memfile.seek(0)
-        response = Response(memfile.getvalue(), mimetype="image/gif")
-        return response
-    return render_template('qrcode_form.html', form=form)
-
-
-print("Register: /")
 @app.route("/")
 def home_page():
     with open(os.path.join(appfile_dir, "index.html")) as f:
@@ -62,8 +50,7 @@ def home_page():
 
 static_redirect("/images/logo.png")
 
-print("Register: /pdf")
-@app.route("/pdf", methods=['GET', 'POST'])
+@app.route("/pdf/pagezip", methods=['GET', 'POST'])
 def get_or_post_pdf():
     form = PDF_Form()
     logger.info(f"Page split requested")
@@ -94,6 +81,34 @@ def get_or_post_pdf():
             raise
     return render_template('pagesplit_form.html', form=form)
 
+
+@app.route("/pdf/booklet", methods=['GET', 'POST'])
+def get_or_post_booklet():
+    form = BookletForm()
+    logger.info("Booklet requested")
+    if form.validate_on_submit():
+        my_file = request.files['file_details']
+        try:
+            output_pdf = make_booklet(my_file.stream)
+            return Response(output_pdf, mimetype="application.pdf")
+        except Exception as e:
+            return f"I'm sorry, Dave, it seems I couldn't do that:\n{e}"
+    return render_template('booklet_form.html', form=form)
+
+@app.route("/qrcode", methods=['GET', 'POST'])
+def get_or_post_qrcode():
+    form = QRcode_Form()
+    logger.info("QR code requested")
+    if form.validate_on_submit():
+        text = request.form['qrcode_text']
+        qr = qrcode.make(text)
+        memfile = io.BytesIO()
+        qr.save(memfile)
+        memfile.seek(0)
+        response = Response(memfile.getvalue(), mimetype="image/gif")
+        return response
+    return render_template('qrcode_form.html', form=form)
+
 app.config['SECRET_KEY'] = "lkjahskdflkjad[pouaerpoiuqt"
 application = app.wsgi_app
 
@@ -119,4 +134,4 @@ if __name__ == '__main__':
         print(result)
         return(result)
 
-    app.run()
+    app.run(port=2400)
