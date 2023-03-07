@@ -17,6 +17,11 @@ appfile_dir = os.path.dirname(__file__)
 app = Flask(__name__)
 
 
+def static_redirect(path):
+    @app.route(path)
+    def static_reroute():
+        return redirect(f"/static{path}")
+
 class PDF_Form(FlaskForm):
     file_details = FileField('file_details', validators=[DataRequired()])
     file_prefix = StringField('file_prefix')
@@ -55,6 +60,7 @@ def home_page():
     with open(os.path.join(appfile_dir, "index.html")) as f:
         return f.read()
 
+static_redirect("/images/logo.png")
 
 print("Register: /pdf")
 @app.route("/pdf", methods=['GET', 'POST'])
