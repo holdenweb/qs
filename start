@@ -1,6 +1,6 @@
 #!/bin/bash
 export PYTHONPATH=$(pwd)/myapp
-PIDFILE="$HOME/apps/production/tmp/production.pid"
+PIDFILE="$HOME/apps/{{TARGET}}/tmp/{{TARGET}}.pid"
 if [ -e "${PIDFILE}" ] && (ps -u $(whoami) -opid= |
                            grep -P "^\s*$(cat ${PIDFILE})$" &> /dev/null); then
   echo "Already running."
@@ -8,4 +8,4 @@ if [ -e "${PIDFILE}" ] && (ps -u $(whoami) -opid= |
 fi
 echo -n 'Started at '
 date "+%Y-%m-%d %H:%M:%S"
-/home/sholden/apps/production/env/bin/uwsgi --ini /home/sholden/apps/production/uwsgi.ini
+/home/sholden/apps/{{TARGET}}/env/bin/uwsgi --ini /home/sholden/apps/{{TARGET}}/uwsgi.ini

@@ -2,3 +2,4 @@ pdfrw
 flask
 flask-wtf
 qrcode
+reportlab

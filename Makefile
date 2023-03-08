@@ -1,8 +1,8 @@
 OPAL = sholden@opal5.opalstack.com
 HOME = /home/sholden
-SITENAME = production
+TARGET = production
 PORT = 53765
-APPDIR = apps/${SITENAME}
+APPDIR = apps/${TARGET}
 ENVDIR = envs/${VERSION}
 RELDIR = apps/${VERSION}
 PYTHON = python3.10
@@ -13,7 +13,7 @@ report:
 init:
 	for filename in stop start kill uwsgi.ini; \
 	do \
-		jinja -D sitename ${SITENAME} -D port $$(cat release/port_no) $$filename > release/$$filename ; \
+		jinja -D TARGET ${TARGET} -D port $$(cat release/port_no) $$filename > release/$$filename ; \
 		scp release/$$filename ${OPAL}:${APPDIR}/$$filename ; \
 	done ; \
 	ssh ${OPAL} " \
