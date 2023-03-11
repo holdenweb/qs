@@ -1,5 +1,5 @@
 #!/bin/bash
-export PYTHONPATH=$(pwd)/myapp
+export PYTHONPATH=$HOME/apps/{{TARGET}}/myapp
 PIDFILE="$HOME/apps/{{TARGET}}/tmp/{{TARGET}}.pid"
 if [ -e "${PIDFILE}" ] && (ps -u $(whoami) -opid= |
                            grep -P "^\s*$(cat ${PIDFILE})$" &> /dev/null); then
