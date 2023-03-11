@@ -3,7 +3,8 @@ import io
 import sys
 from io import BytesIO
 from booklet import make_booklet
-from flask import Flask, Response, render_template, flash, send_file, redirect, request, url_for
+from flask import (Blueprint, Flask, Response, render_template, flash,
+                   send_file, redirect, request, url_for)
 from flask_wtf import FlaskForm
 import qrcode
 from wtforms import FileField, SubmitField, StringField
@@ -12,16 +13,6 @@ from zipfile import ZipFile
 from logging import getLogger
 import pdfrw
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-
-
-appfile_dir = os.path.dirname(__file__)
-app = Flask(__name__)
-
-
-def static_redirect(path):
-    @app.route(path)
-    def static_reroute():
-        return redirect(f"/static{path}")
 
 class PDF_Form(FlaskForm):
     file_details = FileField('file_details', validators=[DataRequired()])
@@ -36,6 +27,39 @@ class BookletForm(FlaskForm):
     file_details = FileField('file_details', validators=[DataRequired()])
     submit = SubmitField("Generate Booklet")
 
+
+child = Blueprint('child', __name__, url_prefix='/child')
+@child.route("/page")
+def child_page():
+    return "This is the child page"
+
+parent = Blueprint('parent', __name__, url_prefix='/parent')
+@parent.route("/page")
+def parent_page():
+    return render_template('base.html', content=
+    """
+rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
+rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
+rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
+rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
+rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
+rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
+rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
+rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
+rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
+rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
+rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
+rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
+rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
+""")
+
+appfile_dir = os.path.dirname(__file__)
+app = Flask(__name__)
+parent.register_blueprint(child)
+app.register_blueprint(parent)
+
+
+
 env = Environment(
     loader=FileSystemLoader('%s/templates/' % appfile_dir),
     autoescape=select_autoescape(['html', 'xml'])
@@ -45,10 +69,10 @@ logger = getLogger(__name__)
 
 @app.route("/")
 def home_page():
-    with open(os.path.join(appfile_dir, "index.html")) as f:
-        return f.read()
+    return render_template("basepage-layoutit.html")
 
-static_redirect("/images/logo.png")
+#static_redirect("/images/")
+#static_redirect("/css/styles.css")
 
 @app.route("/pdf/pagezip", methods=['GET', 'POST'])
 def get_or_post_pdf():

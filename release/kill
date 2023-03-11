@@ -1,2 +1,0 @@
-#!/bin/bash
-kill -9 `cat $HOME/apps/production/tmp/production.pid`
