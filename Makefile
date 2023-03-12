@@ -1,29 +1,32 @@
-OPAL = sholden@opal5.opalstack.com
+REMOTE = sholden@opal5.opalstack.com
 HOME = /home/sholden
-TARGET = production-${VERSION}
-APPDIR = apps/${TARGET}
+PROJECT = testing
+TARGET = ${PROJECT}
+APPDIR = ${HOME}/apps/${TARGET}
 ENVDIR = envs/${VERSION}
 RELDIR = apps/${VERSION}
 PYTHON = python3.10
 
 report:
-	echo app: ${APPDIR} envs: ${ENVDIR} myapp: ${RELDIR} target: ${TARGET} version: ${VERSION}
+	echo APPDIR: ${APPDIR} ENVDIR: ${ENVDIR} RELDIR: ${RELDIR} TARGET: ${TARGET} VERSION: ${VERSION}
 
-init:
+create:
 	python create_app.py ${TARGET}
+
+deploy:
 	for filename in stop start kill uwsgi.ini; \
 	do \
-		jinja -D TARGET ${TARGET} -D port $$(cat release/port_no) $$filename > release/$$filename ; \
-		scp release/$$filename ${OPAL}:${APPDIR}/$$filename ; \
+		jinja -D PROJECT ${PROJECT} -D port $$(cat release/port_no) $$filename | \
+					ssh ${REMOTE} "cat > ${APPDIR}/$$filename" ; \
 	done ; \
-	ssh ${OPAL} " \
-                cd ${APPDIR}/ ; \
-		mkdir apps ; \
-		mkdir envs ; \
-		mkdir tmp ; \
+	ssh ${REMOTE} " \
+                cd ${APPDIR} ; \
+		mkdir -p apps && rm -rf apps/* ; \
+		mkdir -p envs  ; \
+		mkdir -p tmp && rm -rf tmp/*  ; \
 		chmod +x kill start stop" ; \
-	scp -r release/ ${OPAL}:${HOME}/${APPDIR}/${RELDIR}
-	ssh ${OPAL} "cd ${APPDIR} ; \
+	scp -r release/ ${REMOTE}:${APPDIR}/${RELDIR}
+	ssh ${REMOTE} "cd ${APPDIR} ; \
 		${PYTHON} -m venv ${ENVDIR} ; \
 		source ${ENVDIR}/bin/activate ; \
 		pip install -r ${RELDIR}/requirements.txt ; \

@@ -1,2 +1,2 @@
 #!/bin/bash
-kill -9 `cat $HOME/apps/{{TARGET}}/tmp/{{TARGET}}.pid`
+kill -9 `cat $HOME/apps/{{PROJECT}}/tmp/{{PROJECT}}.pid`
