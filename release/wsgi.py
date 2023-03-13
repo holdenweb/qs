@@ -61,7 +61,8 @@ def parent_page(name):
 
 @app.route("/")
 def home_page():
-    return render_template("basepage-layoutit.html")
+    with open(os.path.join(appfile_dir, "index.html")) as f:
+        return f.read()
 
 
 #static_redirect("/images/")
