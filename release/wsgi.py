@@ -13,6 +13,8 @@ from zipfile import ZipFile
 from logging import getLogger
 import pdfrw
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+import markdown
+
 
 class PDF_Form(FlaskForm):
     file_details = FileField('file_details', validators=[DataRequired()])
@@ -33,31 +35,9 @@ child = Blueprint('child', __name__, url_prefix='/child')
 def child_page():
     return "This is the child page"
 
-parent = Blueprint('parent', __name__, url_prefix='/parent')
-@parent.route("/page")
-def parent_page():
-    return render_template('base.html', content=
-    """
-rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
-rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
-rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
-rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
-rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
-rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
-rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
-rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
-rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
-rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
-rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
-rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
-rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb rhubarb
-""")
 
 appfile_dir = os.path.dirname(__file__)
 app = Flask(__name__)
-parent.register_blueprint(child)
-app.register_blueprint(parent)
-
 
 
 env = Environment(
@@ -67,12 +47,24 @@ env = Environment(
 logger = getLogger(__name__)
 
 
+parent = Blueprint('parent', __name__, url_prefix='/parent')
+parent.register_blueprint(child)
+app.register_blueprint(parent)
+
+@app.route("/page/<name>")
+def parent_page(name):
+    with open(os.path.join(appfile_dir, "md-pages", f"{name}.md")) as f:
+        return render_template('markdown.html', content=markdown.markdown(f.read()))
+
+
 @app.route("/")
 def home_page():
     return render_template("basepage-layoutit.html")
 
+
 #static_redirect("/images/")
 #static_redirect("/css/styles.css")
+
 
 @app.route("/pdf/pagezip", methods=['GET', 'POST'])
 def get_or_post_pdf():
