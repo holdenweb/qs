@@ -53,8 +53,10 @@ app.register_blueprint(parent)
 
 @app.route("/page/<name>")
 def parent_page(name):
+    md = markdown.Markdown(extensions=['mdx_math'])
     with open(os.path.join(appfile_dir, "md-pages", f"{name}.md")) as f:
-        return render_template('markdown.html', content=markdown.markdown(f.read()))
+        html = md.convert(f.read())
+        return render_template('markdown.html', content=html)
 
 
 @app.route("/")
