@@ -5,6 +5,8 @@ import opalstack as ops
 import os
 import sys
 
+from mongoengine import connect
+from models import Application
 from hu import ObjectDict as OD
 
 MANAGER_NAME = "sholden"
@@ -14,10 +16,13 @@ token = os.getenv('OPALSTACK_TOKEN')
 api = ops.Api(token=token)
 
 def create_app(a_mgr, name, manager_id):
+    conn = connect(db='opalstack')
     app = a_mgr.create_one(dict
                               (name=name,
                                osuser=manager_id,
                                type='CUS'))
+    db_app = Application(**app)
+    db_app.save()
     return OD(app)
 
 u_mgr = ops.api.OSUsersManager(api)
