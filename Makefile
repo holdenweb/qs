@@ -1,22 +1,22 @@
 REMOTE = sholden@opal5.opalstack.com
 HOME = /home/sholden
 PROJECT = testing
-TARGET = ${PROJECT}
-APPDIR = ${HOME}/apps/${TARGET}
+APPDIR = ${HOME}/apps/${PROJECT}
 ENVDIR = envs/${VERSION}
 RELDIR = apps/${VERSION}
+PORTNO = "no_port#_provided"
 PYTHON = python3.10
 
 report:
-	echo APPDIR: ${APPDIR} ENVDIR: ${ENVDIR} RELDIR: ${RELDIR} TARGET: ${TARGET} VERSION: ${VERSION}
+	echo APPDIR: ${APPDIR} ENVDIR: ${ENVDIR} RELDIR: ${RELDIR} PROJECT: ${PROJECT} VERSION: ${VERSION} PORT_NO: ${PORT_NO}
 
 create:
-	python create_app.py ${TARGET}
+	python create_app.py ${PROJECT}
 
 deploy:
 	for filename in stop start kill uwsgi.ini; \
 	do \
-		jinja -D PROJECT ${PROJECT} -D port $$(cat release/port_no) $$filename | \
+		jinja -D PROJECT ${PROJECT} -D port ${PORT_NO} $$filename | \
 					ssh ${REMOTE} "cat > ${APPDIR}/$$filename" ; \
 	done ; \
 	ssh ${REMOTE} " \
@@ -32,4 +32,4 @@ deploy:
 		pip install -r ${RELDIR}/requirements.txt ; \
 		rm -f myapp ; ln -s ${RELDIR} myapp ; \
 		rm -f env ; ln -s ${ENVDIR} env ; \
-		ln -s /home/sholden/bin/uwsgi env/bin"
+		ln -sf /home/sholden/bin/uwsgi env/bin"

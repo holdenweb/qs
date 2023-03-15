@@ -4,7 +4,7 @@ class Application(Document):
     id = UUIDField(primary_key=True)
     state = StringField()
     ready = BooleanField()
-    name = StringField()
+    name = StringField(unique=True)
     server = UUIDField()
     osuser = UUIDField()
     type = StringField()
