@@ -30,12 +30,6 @@ class BookletForm(FlaskForm):
     submit = SubmitField("Generate Booklet")
 
 
-child = Blueprint('child', __name__, url_prefix='/child')
-@child.route("/page")
-def child_page():
-    return "This is the child page"
-
-
 appfile_dir = os.path.dirname(__file__)
 app = Flask(__name__)
 
@@ -46,10 +40,6 @@ env = Environment(
 )
 logger = getLogger(__name__)
 
-
-parent = Blueprint('parent', __name__, url_prefix='/parent')
-parent.register_blueprint(child)
-app.register_blueprint(parent)
 
 @app.route("/page/<name>")
 def parent_page(name):
@@ -64,10 +54,10 @@ def home_page():
     with open(os.path.join(appfile_dir, "index.html")) as f:
         return f.read()
 
-
-#static_redirect("/images/")
-#static_redirect("/css/styles.css")
-
+@app.route("/notes/<name>")
+def page_from_html(name):
+    with open(os.path.join(appfile_dir, "html-pages", f"{name}.html")) as f:
+        return render_template("base.html", content=f.read())
 
 @app.route("/pdf/pagezip", methods=['GET', 'POST'])
 def get_or_post_pdf():
