@@ -60,7 +60,7 @@ def page_from_html(name):
         return render_template("base.html", content=f.read())
 
 @app.route("/pdf/pagezip", methods=['GET', 'POST'])
-def get_or_post_pdf():
+def get_or_post_pagezip():
     form = PDF_Form()
     logger.info(f"Page split requested")
     if form.validate_on_submit():
@@ -98,8 +98,18 @@ def get_or_post_booklet():
     if form.validate_on_submit():
         my_file = request.files['file_details']
         try:
-            output_pdf = make_booklet(my_file.stream)
-            return Response(output_pdf, mimetype="application.pdf")
+            output_pdfs = make_booklet(my_file.stream)
+            outzip = BytesIO()
+            container = ZipFile(outzip, 'w')
+            for p_typ, pdf in zip(('odd', 'even'), output_pdfs):
+                container.writestr(f"pdf/{p_typ}.pdf",
+                                   pdf.getvalue())
+            container.close()
+            outzip.seek(0)
+            return send_file(outzip,
+                             mimetype="application/zip",
+                             as_attachment=True,
+                             download_name="pages.zip")
         except Exception as e:
             return f"I'm sorry, Dave, it seems I couldn't do that:\n{e}"
     return render_template('booklet_form.html', form=form)
