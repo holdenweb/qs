@@ -4,7 +4,7 @@ PROJECT = testing
 APPDIR = ${HOME}/apps/${PROJECT}
 ENVDIR = envs/${VERSION}
 RELDIR = apps/${VERSION}
-PORTNO = "no_port#_provided"
+PORT_NO = "no_port#_provided"
 PYTHON = python3.10
 
 report:
