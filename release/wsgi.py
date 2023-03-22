@@ -123,24 +123,4 @@ application = app.wsgi_app
 
 if __name__ == '__main__':
 
-    def has_no_empty_params(rule):
-        defaults = rule.defaults if rule.defaults is not None else ()
-        arguments = rule.arguments if rule.arguments is not None else ()
-        return len(defaults) >= len(arguments)
-
-    @app.route("/r", methods=['GET'])
-    def site_map():
-        result = ""
-        for rule in app.url_map.iter_rules():
-            # Filter out rules we can't navigate to in a browser
-            # and rules that require parameters
-            if "GET" in rule.methods and has_no_empty_params(rule):
-                url = url_for(rule.endpoint, **(rule.defaults or {}))
-                result += f"URL: {url}, endpoint: {rule.endpoint}/<br>\n"
-                # links is now a list of url, endpoint tuples
-            return result
-        result = site_map()
-        print(result)
-        return(result)
-
     app.run(port=2400)
