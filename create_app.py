@@ -16,7 +16,6 @@ token = os.getenv('OPALSTACK_TOKEN')
 api = ops.Api(token=token)
 
 def create_app(a_mgr, name, manager_id):
-    conn = connect(db='opalstack')
     app = a_mgr.create_one(dict
                               (name=name,
                                osuser=manager_id,
@@ -35,12 +34,14 @@ manager = OD(u_mgr.list_all({'name': MANAGER_NAME, 'server': server_id})[0])
 a_mgr = ops.api.AppsManager(api)
 
 if __name__ == '__main__':
+
     if len(sys.argv) == 1:
         names = [input("App name: ")]
     else:
         names = sys.argv[1:]
     if len(names) > 1:
         sys.exit("One at a time, please")
+    conn = connect(db='opalstack')
     for name in names:
         app = create_app(a_mgr, name, manager.id)
         with open("release/port_no", "w") as f:
