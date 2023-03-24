@@ -1,6 +1,5 @@
-#!/bin/bash
-
-PIDFILE="$HOME/apps/{{PROJECT}}/tmp/{{PROJECT}}.pid"
+{% extends "base_template" %}
+{% block content %}
 if [ -e "${PIDFILE}" ] && (ps -u $(whoami) -opid= |
                            grep -P "^\s*$(cat ${PIDFILE})$" &> /dev/null); then
     /home/sholden/apps/{{PROJECT}}/env/bin/uwsgi --stop /home/sholden/apps/{{PROJECT}}/tmp/{{PROJECT}}.pid
@@ -9,3 +8,4 @@ else
     echo "No PID file"
     exit 99
 fi
+{% endblock %}

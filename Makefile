@@ -18,19 +18,14 @@ create:
 	${PYTHON} create_app.py ${PROJECT}
 
 deploy:
-	for filename in stop start kill uwsgi.ini; \
-	do \
-		${JINJA} -D PROJECT ${PROJECT} -D port ${PORT_NO} $$filename | \
-					ssh ${REMOTE} "cat > ${APPDIR}/$$filename" ; \
-	done ; \
 	ssh ${REMOTE} " \
                 cd ${APPDIR} ; \
-		mkdir -p apps && rm -rf apps/* ; \
+		mkdir -p apps ; \
 		mkdir -p envs  ; \
-		mkdir -p tmp && rm -rf tmp/*  ; \
-		chmod +x kill start stop" ; \
+		mkdir -p tmp && rm -rf tmp/*"
 	scp -r release/ ${REMOTE}:${APPDIR}/${RELDIR}
 	ssh ${REMOTE} "cd ${APPDIR} ; \
+		chmod +x kill start stop ; \
 		python3.10 -m venv ${ENVDIR} ; \
 		source ${ENVDIR}/bin/activate ; \
 		pip install -r ${RELDIR}/requirements.txt ; \

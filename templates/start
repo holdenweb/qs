@@ -1,6 +1,5 @@
-#!/bin/bash
-export PYTHONPATH=$HOME/apps/{{PROJECT}}/myapp
-PIDFILE="$HOME/apps/{{PROJECT}}/tmp/{{PROJECT}}.pid"
+{% extends "base_template" %}
+{% block content %}
 if [ -e "${PIDFILE}" ] && (ps -u $(whoami) -opid= |
                            grep -P "^\s*$(cat ${PIDFILE})$" &> /dev/null); then
   echo "Already running."
@@ -9,3 +8,4 @@ fi
 echo -n 'Started at '
 date "+%Y-%m-%d %H:%M:%S"
 /home/sholden/apps/{{PROJECT}}/env/bin/uwsgi --ini /home/sholden/apps/{{PROJECT}}/uwsgi.ini
+{% endblock %}
