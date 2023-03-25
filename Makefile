@@ -14,6 +14,9 @@ JINJA = $(mkfile_dir).reportlab/bin/jinja
 report:
 	echo APPDIR: ${APPDIR} ENVDIR: ${ENVDIR} RELDIR: ${RELDIR} PROJECT: ${PROJECT} VERSION: ${VERSION} PORT_NO: ${PORT_NO}
 
+clean:
+	rm -f release/{start,stop,kill,uwsgi.ini}
+
 create:
 	${PYTHON} create_app.py ${PROJECT}
 
