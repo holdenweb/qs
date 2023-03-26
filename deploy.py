@@ -45,20 +45,18 @@ if __name__ == '__main__':
         loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")),
         autoescape=False
     )
-    for name in names:
+    for app_name in names:
         try:
-            app = Application.objects().get(name=name)
+            app = Application.objects().get(name=app_name)
         except Application.DoesNotExist as e:
             sys.exit(
-                f"{name!r}: no such app on server {SERVER_NAME!r}({server['hostname']},{server['id']})"
+                f"{app_name!r}: no such app on server {SERVER_NAME!r}({server['hostname']},{server['id']})"
             )
-        remote_run(f"apps/{name}/stop")
         for filename in ('kill', 'start', 'stop', 'uwsgi.ini'):
             with open(os.path.join("release", filename), 'w') as f:
                 tpl = jenv.get_template(filename)
-                content = tpl.render(PROJECT=name, PORT_NO=app.port, VERSION=VERSION)
+                content = tpl.render(PROJECT=app_name, PORT_NO=app.port, VERSION=VERSION)
                 f.write(content)
-
-        cmd = f"make deploy PROJECT={name} PORT_NO={app.port} VERSION={VERSION}"
+        cmd = f"make deploy PROJECT={app_name} PORT_NO={app.port} VERSION={VERSION}"
         subprocess.run(cmd.split(), text="Alleged to be required")
-        remote_run(f"apps/{name}/start")
+        remote_run(f"apps/{app_name}/start")
