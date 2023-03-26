@@ -48,6 +48,9 @@ def parent_page(name):
         html = md.convert(f.read())
         return render_template('markdown.html', content=html)
 
+@app.route("/version")
+def get_version():
+    return open(os.path.join(appfile_dir, "version.txt")).read()
 
 @app.route("/")
 def home_page():
