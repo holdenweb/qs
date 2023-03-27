@@ -28,7 +28,6 @@ def deploy(c, app, version):
         c.run(f'mkdir -p apps/{version} envs/{version} tmp && rm -rf tmp/* ')
         Transfer(c).put(f'release-{version}.tgz', f'apps/{app.name}')
         c.run(f"cd apps/{version} && tar xf ../../release-{version}.tgz")
-        print("About to run", f"ln -sF apps/{version} myapp && ln -sF envs/{version} env")
         c.run(f"rm -f myapp env && ln -sF apps/{version} myapp && ln -sF envs/{version} env")
         c.run(f"""\
 chmod +x kill start stop &&
