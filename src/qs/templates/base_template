@@ -1,0 +1,6 @@
+#!/bin/bash
+export PYTHONPATH=$HOME/apps/{{PROJECT}}/myapp
+PIDFILE="$HOME/apps/{{PROJECT}}/tmp/{{PROJECT}}.pid"
+{% block content %}
+echo "$0: This file does nothing"
+{% endblock %}

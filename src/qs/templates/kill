@@ -1,0 +1,4 @@
+{% extends "base_template" %}
+{% block content %}
+kill -9 `cat $PIDFILE`
+{% endblock %}
