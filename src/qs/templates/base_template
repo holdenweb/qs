@@ -1,4 +1,5 @@
 #!/bin/bash
+source ~/.ssh/env
 export PYTHONPATH=$HOME/apps/{{PROJECT}}/myapp
 PIDFILE="$HOME/apps/{{PROJECT}}/tmp/{{PROJECT}}.pid"
 {% block content %}
