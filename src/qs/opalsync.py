@@ -5,7 +5,7 @@ import os
 import sys
 
 from mongoengine import connect
-from models import Application
+from qs.models import Application
 from hu import ObjectDict as OD
 import opalstack as ops
 
