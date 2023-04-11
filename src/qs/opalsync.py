@@ -12,7 +12,9 @@ import opalstack as ops
 MANAGER_NAME = "sholden"
 SERVER_NAME = "opal5.opalstack.com"
 
-token = os.getenv('OPALSTACK_TOKEN')
+token = os.getenv('OPALSTACK_TOKEN', None)
+if not token:
+    sys.exit("OPALSTACK_TOKEN not found in environment")
 api = ops.Api(token=token)
 a_mgr = ops.api.AppsManager(api)
 
