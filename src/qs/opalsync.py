@@ -5,7 +5,7 @@ import os
 import sys
 
 from mongoengine import connect
-from qs.models import App, Domain, Site
+from qs.models import App, Domain, Site, class_for
 from hu import ObjectDict as OD
 import opalstack as ostack
 
@@ -21,22 +21,31 @@ object_types = ['Accounts', 'Addresses', 'Apps', 'Certs', 'Dnsrecords', 'Domains
                 'Mariadbs', 'Mariausers', 'Notices', 'OSUsers', 'OSVars', 'Psqldbs', 'Psqlusers',
                 'Quarantinedmails', 'Servers', 'Sites', 'Tokens']
 
+def server_transfer(mgr, name):
+    print("Servers done")
+
+def token_transfer(mgr, name):
+    print("Tokens done")
+
+def generic_transfer(mgr, name):
+    """
+    Standard routine to transfer _almost_ any Opalstack resource
+    to a local MongoDB database.
+    """
+    item_list = mgr.list_all()
+    for item in item_list:
+        class_for(name)(**item).save()
+
+specials = {'Servers': server_transfer, 'Tokens': token_transfer}
+
 
 def main():
     api = ostack.Api(token=token)
-    a_mgr = ostack.api.AppsManager(api)
-    d_mgr = ostack.api.DomainsManager(api)
-    s_mgr = ostack.api.SitesManager(api)
     connect("opalstack")
-    app_list = a_mgr.list_all()
-    for app in app_list:
-        App(**app).save()
-    domain_list = d_mgr.list_all()
-    for domain in domain_list:
-        Domain(**domain).save()
-    site_list = s_mgr.list_all()
-    for site in site_list:
-        Site(**site).save()
+    for name in object_types:
+        print("Grabbing", name)
+        mgr = getattr(ostack.api, f"{name}Manager")(api)
+        specials.get(name, generic_transfer)(mgr, name)
 
 if __name__ == '__main__':
     main()
