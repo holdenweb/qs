@@ -1,6 +1,6 @@
 from mongoengine import Document, DynamicDocument, DictField, ListField, StringField, IntField, BooleanField, UUIDField, URLField
 
-class Application(Document):
+class App(Document):
     id = UUIDField(primary_key=True)
     state = StringField()
     ready = BooleanField()
@@ -36,3 +36,89 @@ class Site(DynamicDocument):
     cert = UUIDField()
     redirect = BooleanField()
 
+class Account(DynamicDocument):
+    id = UUIDField(primary_key=True)
+
+
+class Address(DynamicDocument):
+    id = UUIDField(primary_key=True)
+
+
+class Cert(DynamicDocument):
+    id = UUIDField(primary_key=True)
+
+
+class Dnsrecord(DynamicDocument):
+    id = UUIDField(primary_key=True)
+
+
+class Ip(DynamicDocument):
+    id = UUIDField(primary_key=True)
+
+
+class Mailuser(DynamicDocument):
+    id = UUIDField(primary_key=True)
+
+
+class Mariadb(DynamicDocument):
+    id = UUIDField(primary_key=True)
+
+
+class Mariauser(DynamicDocument):
+    id = UUIDField(primary_key=True)
+
+
+class Notice(DynamicDocument):
+    id = UUIDField(primary_key=True)
+
+
+class OSUser(DynamicDocument):
+    id = UUIDField(primary_key=True)
+
+
+class OSVar(DynamicDocument):
+    id = UUIDField(primary_key=True)
+
+
+class Psqldb(DynamicDocument):
+    id = UUIDField(primary_key=True)
+
+
+class Psqluser(DynamicDocument):
+    id = UUIDField(primary_key=True)
+
+
+class Quarantinedmail(DynamicDocument):
+    id = UUIDField(primary_key=True)
+
+
+class Server(DynamicDocument):
+    id = UUIDField(primary_key=True)
+
+
+class Token(DynamicDocument):
+    id = UUIDField(primary_key=True)
+
+
+def class_for(name):
+    return {
+    'Accounts': Account,
+    'Addresses': Address,
+    'Apps': App,
+    'Certs': Cert,
+    'Dnsrecords': Dnsrecord,
+    'Domains': Domain,
+    'Ips': Ip,
+    'Mailusers': Mailuser,
+    'Mariadbs': Mariadb,
+    'Mariausers': Mariauser,
+    'Notices': Notice,
+    'OSUsers': OSUser,
+    'OSVars': OSVar,
+    'Psqldbs': Psqldb,
+    'Psqlusers': Psqluser,
+    'Quarantinedmails': Quarantinedmail,
+    'Servers': Server,
+    'Sites': Site,
+    'Tokens': Token
+    }[name]

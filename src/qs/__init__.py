@@ -4,7 +4,7 @@ import sys
 from fabric import task, Connection
 from fabric.transfer import Transfer
 from mongoengine import connect
-from .models import Application
+from .models import App
 from jinja2 import Environment, FileSystemLoader
 
 import logging
@@ -19,8 +19,8 @@ __version__ = "3.0.1"
 def deploy(c, app, version):
     print(f"Deploying with qs {__version__}")
     try:
-        app = Application.objects.get(name=app)
-    except Application.DoesNotExist:
+        app = App.objects.get(name=app)
+    except App.DoesNotExist:
         sys.exit(f"Application {app!r} not known: do you need to run sync-apps?")
     jenv = Environment(
         loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")),
