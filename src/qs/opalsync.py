@@ -22,10 +22,10 @@ object_types = ['Accounts', 'Addresses', 'Apps', 'Certs', 'Dnsrecords', 'Domains
                 'Quarantinedmails', 'Servers', 'Sites', 'Tokens']
 
 def server_transfer(mgr, name):
-    print("Servers done")
-
-def token_transfer(mgr, name):
-    print("Tokens done")
+    s_dict = mgr.list_all()
+    for key in s_dict:
+        for d in s_dict[key]:
+            class_for(name)(**d).save()
 
 def generic_transfer(mgr, name):
     """

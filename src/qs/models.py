@@ -94,6 +94,8 @@ class Quarantinedmail(DynamicDocument):
 
 class Server(DynamicDocument):
     id = UUIDField(primary_key=True)
+    hostname = StringField()
+    type = StringField()
 
 
 class Token(DynamicDocument):
