@@ -97,7 +97,8 @@ class Server(DynamicDocument):
 
 
 class Token(DynamicDocument):
-    id = UUIDField(primary_key=True)
+    name = StringField(primary_key=True)
+    key = StringField()
 
 
 def class_for(name):

@@ -36,7 +36,7 @@ def generic_transfer(mgr, name):
     for item in item_list:
         class_for(name)(**item).save()
 
-specials = {'Servers': server_transfer, 'Tokens': token_transfer}
+specials = {'Servers': server_transfer}
 
 
 def main():
