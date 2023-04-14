@@ -1,9 +1,4 @@
-## holdenweb.com source code
+## qs: a quick site generator
 
-<<<<<<< HEAD
-A completely unimportant site of no particular
-interest to anyomne buyt the author.
-=======
-When it's finished, this will deploy local flask sites
+When it's finished, this will deploy local wsgi sites
 to Opalstack with no need for the control panel.
->>>>>>> the-package

@@ -16,6 +16,7 @@ opalstack = "^1.0.1"
 [tool.poetry.scripts]
 qs = "qs:main"
 opalsync = "qs.opalsync:main"
+new_app = "qs.new_app:main"
 
 [build-system]
 requires = ["poetry-core"]
