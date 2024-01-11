@@ -16,10 +16,13 @@ token = os.getenv('OPALSTACK_TOKEN')
 api = ops.Api(token=token)
 
 def create_app(a_mgr, name, manager_id):
-    app = a_mgr.create_one(dict
-                              (name=name,
-                               osuser=manager_id,
-                               type='CUS'))
+    app = a_mgr.create_one(
+        dict(
+            name=name,
+            osuser=manager_id,
+            type='CUS'
+        )
+    )
     db_app = App(**app)
     db_app.save()
     return OD(app)
@@ -44,6 +47,7 @@ def main():
     for name in names:
         app = create_app(a_mgr, name, manager.id)
         print("Created on port", app.port, file=sys.stderr)
+
 
 if __name__ == '__main__':
     main()

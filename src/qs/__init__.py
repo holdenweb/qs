@@ -1,11 +1,13 @@
 import os
 import sys
 
+from importlib.resources import files
+
 from fabric import task, Connection
 from fabric.transfer import Transfer
 from mongoengine import connect
-from .models import App
-from jinja2 import Environment, FileSystemLoader
+from qs.models import App
+from jinja2 import Environment, FileSystemLoader, PackageLoader
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -22,8 +24,10 @@ def deploy(c, app, version):
         app = App.objects.get(name=app)
     except App.DoesNotExist:
         sys.exit(f"Application {app!r} not known: do you need to run sync-apps?")
+    # loader = FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")
+    loader = PackageLoader('qs', 'templates')
     jenv = Environment(
-        loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")),
+        loader=loader,
         autoescape=False
     )
     if not app.port:
