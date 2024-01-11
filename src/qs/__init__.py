@@ -1,13 +1,10 @@
-import os
 import sys
-
-from importlib.resources import files
 
 from fabric import task, Connection
 from fabric.transfer import Transfer
 from mongoengine import connect
 from qs.models import App
-from jinja2 import Environment, FileSystemLoader, PackageLoader
+from jinja2 import Environment, PackageLoader
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -15,7 +12,8 @@ logging.basicConfig(level=logging.INFO)
 HOSTS = ['opal5.opalstack.com']
 conn = connect('opalstack')
 
-__version__ = "3.0.1"
+__version__ = "0.1.0"
+
 
 @task(hosts=HOSTS)
 def deploy(c, app, version):
@@ -38,7 +36,7 @@ def deploy(c, app, version):
             content = tpl.render(PROJECT=app.name, PORT_NO=app.port, VERSION=version)
             f.write(content)
             c.local(f'echo {version} > version.txt')
-    c.local(f'(tar cf release-{version}.tgz --exclude __pycache__ --exclude \*.DS_Store --exclude \*.tgz --exclude .git\* .)')
+    c.local(fr'(tar cf release-{version}.tgz --exclude __pycache__ --exclude \*.DS_Store --exclude \*.tgz --exclude .git\* .)')
     with c.cd(f"apps/{app.name}"):
         c.run("./stop || echo Not running")
         c.run(f'mkdir -p apps/{version} envs/{version} tmp && rm -rf tmp/* ')
@@ -68,6 +66,7 @@ def main():
         },
     )
     return deploy(c, *args)
+
 
 if __name__ == '__main__':
     main()
