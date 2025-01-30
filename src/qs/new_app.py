@@ -6,7 +6,7 @@ import os
 import sys
 
 from mongoengine import connect
-from .models import App
+from qs.models import App
 from hu import ObjectDict as OD
 
 MANAGER_NAME = "sholden"

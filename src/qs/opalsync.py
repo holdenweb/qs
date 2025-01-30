@@ -9,6 +9,8 @@ from qs.models import App, Domain, Site, class_for
 from hu import ObjectDict as OD
 import opalstack as ostack
 
+ostack.apps
+
 
 MANAGER_NAME = "sholden"
 SERVER_NAME = "opal5.opalstack.com"

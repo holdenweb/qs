@@ -1,20 +1,21 @@
 [tool.poetry]
 name = "qs"
-version = "0.1.0"
+version = "0.2.0"
 description = "Opalsite deployment for local flask sites"
 authors = ["Steve Holden <steve@holdenweb.com>"]
 license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.7 || ^3.8 || ^3.9 || ^3.10 || ^3.11"
+python = "^3.8 || ^3.9 || ^3.10 || ^3.11 || 3.12"
 jinja2 = "^3.1.2"
 fabric = "^3.0.0"
 mongoengine = "^0.27.0"
 opalstack = "^1.0.1"
 
 [tool.poetry.scripts]
-qs = "qs:main"
+deploy = "qs:deploy"
+release = "qs:release"
 opalsync = "qs.opalsync:main"
 new_app = "qs.new_app:main"
 

@@ -1,23 +1,30 @@
+import os
+import subprocess
 import sys
 
-from fabric import task, Connection
+from .models import App
+
+from fabric import Connection
 from fabric.transfer import Transfer
 from mongoengine import connect
-from qs.models import App
 from jinja2 import Environment, PackageLoader
 
 import logging
 logging.basicConfig(level=logging.INFO)
 
-DEBUG = True
+DEBUG = False
 HOSTS = ['opal5.opalstack.com']
 conn = connect('opalstack')
 
-__version__ = "0.2.0"
+from .version import __version__
 
+VERSION_TEMPLATE = """\
 
-@task(hosts=HOSTS)
-def deploy(c, app, version):
+__version__ = "{version}"
+
+"""
+
+def deliver(c, app, version):
 
     def crun(cmd):
         if DEBUG:
@@ -42,8 +49,8 @@ def deploy(c, app, version):
             tpl = jenv.get_template(filename)
             content = tpl.render(PROJECT=app.name, PORT_NO=app.port, VERSION=version)
             f.write(content)
-            c.local(f'echo {version} > version.txt')
-    c.local(fr'(tar cf release-{version}.tgz --exclude __pycache__ --exclude \*.DS_Store --exclude \*.tgz --exclude .git\* .)')
+    c.local(f'echo {version} > version.txt')
+    c.local(fr'(tar cf release-{version}.tgz --no-xattrs --exclude __pycache__ --exclude \*.DS_Store --exclude \*.tgz --exclude .git\* .)')
 
     with c.cd(f"apps/{app.name}"):
         crun("./stop || echo Not running")
@@ -55,7 +62,7 @@ def deploy(c, app, version):
 chmod +x kill start stop &&
 python3.10 -m venv envs/{version} &&
 source envs/{version}/bin/activate &&
-pip install -qr apps/{version}/requirements.txt &&
+pip install -r apps/{version}/requirements.txt &&
 rm -f myapp ; ln -s apps/{version} myapp &&
 rm -f env ; ln -s envs/{version} env &&
 ln -sf /home/sholden/bin/uwsgi env/bin
@@ -65,9 +72,19 @@ ln -sf /home/sholden/bin/uwsgi env/bin
     c.close()
 
 
-def main():
+def deploy():
     args = sys.argv[1:]
-    print("Args are", args)
+    if len(args) != 1:
+        sys.exit(f"""\
+Usage: {os.path.basename(sys.argv[0])} appname
+
+This delivers the currently checked-out version of this directory's
+application to the named Opalstack app.""")
+    app = args[0]
+    cmd = ["git", "tag", "--points-at", "HEAD"]
+    version = subprocess.run(cmd, capture_output=True, text=True).stdout.strip()
+    if not version:
+        sys.exit("Unable to find tag for this commit")
     c = Connection(
         host=HOSTS[0],
         user="sholden",
@@ -75,8 +92,50 @@ def main():
             "key_filename": "/Users/sholden/.ssh/id_rsa",
         },
     )
-    return deploy(c, *args)
+    return deliver(c, app, version)
 
+def release():
+
+    def usage():
+        return f"""\
+Usage: {os.path.basename(sys.argv[0])} [release]
+
+where "release" is an acceptable argument for "poetry version".
+Without an argument, displays the current release.
+"""
+
+    cmd = ["poetry", "version"]
+    if len(sys.argv) == 1:
+        retcode = subprocess.call(cmd)
+        print(usage())
+        if os.system("git diff --quiet") != 0:
+            sys.exit("Git branch is dirty: please commit changes before releasing")
+        sys.exit(0)
+
+    if len(sys.argv) != 2:
+        sys.exit(usage())
+
+    # Modify version according to argument
+    cmd.append(sys.argv[1])
+    retcode = subprocess.call(cmd)
+    if retcode:
+        sys.exit(f"""Command {" ".join(cmd)!r} failed with return code {retcode}""")
+
+    # Check in an updated version.py
+    cmd = ["poetry", "version", "--short"]
+    version = subprocess.run(cmd, capture_output=True, text=True).stdout.strip()
+    pystring = VERSION_TEMPLATE.format(version=version)
+    with open("version.py", "w") as pyfile:
+        pyfile.write(pystring)
+        print("Wrote", pyfile)
+    cmd = ["git", "add", "version.py"]
+    retcode = subprocess.call(cmd)
+    cmd = ["git", "commit", "-m", f"Release r{version}"]
+    retcode = subprocess.call(cmd)
+
+    # Tag the new version
+    cmd = ["git", "tag", f"r{version}"]
+    retcode = subprocess.call(cmd)
 
 if __name__ == '__main__':
-    main()
+    deploy()
