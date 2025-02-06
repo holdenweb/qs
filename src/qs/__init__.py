@@ -50,7 +50,7 @@ def deliver(c, app, version):
             content = tpl.render(PROJECT=app.name, PORT_NO=app.port, VERSION=version)
             f.write(content)
     c.local(f'echo {version} > version.txt')
-    c.local(fr'(tar cf release-{version}.tgz --no-xattrs --exclude __pycache__ --exclude \*.DS_Store --exclude \*.tgz --exclude .git\* .)')
+    c.local(fr'(tar cf release-{version}.tgz  --disable-copyfile --no-xattrs --exclude __pycache__ --exclude \*.DS_Store --exclude \*.tgz --exclude node_modules --exclude .git\* .)')
 
     with c.cd(f"apps/{app.name}"):
         crun("./stop || echo Not running")
@@ -128,7 +128,7 @@ Without an argument, displays the current release.
     with open("version.py", "w") as pyfile:
         pyfile.write(pystring)
         print("Wrote", pyfile)
-    cmd = ["git", "add", "version.py"]
+    cmd = ["git", "add", "version.py", "pyproject.toml"]
     retcode = subprocess.call(cmd)
     cmd = ["git", "commit", "-m", f"Release r{version}"]
     retcode = subprocess.call(cmd)
