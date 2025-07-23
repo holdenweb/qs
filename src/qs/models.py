@@ -24,6 +24,8 @@ class Domain(Document):
     name = StringField(unique=True)
     dkim_record = StringField()
     is_valid_hostname = BooleanField()
+    dkim_privkey = StringField()
+    dkim_pubkey = StringField()
 
 
 class Site(DynamicDocument):
