@@ -138,7 +138,6 @@ Without an argument, displays the current release.
     pystring = VERSION_TEMPLATE.format(version=version)
     with open("version.py", "w") as pyfile:
         pyfile.write(pystring)
-        print("Wrote", pyfile)
     cmd = ["git", "add", "version.py", "pyproject.toml"]
     retcode = subprocess.call(cmd)
     cmd = ["git", "commit", "-m", f"Release r{version}"]

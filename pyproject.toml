@@ -12,7 +12,6 @@ build-backend = "hatchling.build"
 
 [project.scripts]
 deploy = "qs:deploy"
-release = "qs:release"
 opalsync = "qs.opalsync:main"
 new_app = "qs.new_app:main"
 
