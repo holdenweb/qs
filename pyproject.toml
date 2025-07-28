@@ -1,18 +1,14 @@
 [project]
 name = "qs"
-version = "0.2.3"
+version = "0.2.4"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = [
-    "fabric>=3.2.2",
-    "hu>=0.9.0",
-    "jinja2>=3.1.6",
-    "mongoengine>=0.29.1",
-    "opalstack>=1.0.3",
-    "semver>=3.0.4",
-    "toml>=0.10.2",
-]
+dependencies = [ "fabric>=3.2.2", "hu>=0.9.0", "jinja2>=3.1.6", "mongoengine>=0.29.1", "opalstack>=1.0.3", "semver>=3.0.4", "toml>=0.10.2",]
+
+[build-system]
+requires = [ "hatchling",]
+build-backend = "hatchling.build"
 
 [project.scripts]
 depljoy = "qs:deploy"
@@ -20,21 +16,17 @@ release = "qs:release"
 opalsync = "qs.opalsync:main"
 new_app = "qs.new_app:main"
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [tool.hatch.build]
-include = ["src/qs"]
+include = [ "src/qs",]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/qs"]
+packages = [ "src/qs",]
 
 [tool.hatch.build.targets.sdist]
 only-include = [ "src/qs",]
 
-[tool.hatch.build.targets.sdist.sources]
+[tool.hatch.build.targets.wheel.sources]
 "src/qs" = "qs"
 
-[tool.hatch.build.targets.wheel.sources]
+[tool.hatch.build.targets.sdist.sources]
 "src/qs" = "qs"
