@@ -11,7 +11,7 @@ requires = [ "hatchling",]
 build-backend = "hatchling.build"
 
 [project.scripts]
-depljoy = "qs:deploy"
+deploy = "qs:deploy"
 release = "qs:release"
 opalsync = "qs.opalsync:main"
 new_app = "qs.new_app:main"
