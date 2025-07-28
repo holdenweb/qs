@@ -25,7 +25,9 @@ __version__ = "{version}"
 """
 
 def deliver(c, app, version):
-
+    """
+    Actually deliver the code to the remote server and install it.
+    """
     def crun(cmd):
         if DEBUG:
             print("+", cmd)
@@ -35,7 +37,7 @@ def deliver(c, app, version):
     try:
         app = App.objects.get(name=app)
     except App.DoesNotExist:
-        sys.exit(f"Application {app!r} not known: do you need to run sync-apps?")
+        sys.exit(f"Application {app!r} not found: do you need to run opalsync?")
     loader = PackageLoader('qs', 'templates')
     jenv = Environment(
         loader=loader,
@@ -43,21 +45,29 @@ def deliver(c, app, version):
     )
 
     if not app.port:
-        sys.exit("App has no port number: please re-sync by running sync-apps.")
+        sys.exit("App has no port number: please re-sync by running opalsync.")
     for filename in ('kill', 'start', 'stop', 'uwsgi.ini'):
         with open(filename, 'w') as f:
             tpl = jenv.get_template(filename)
             content = tpl.render(PROJECT=app.name, PORT_NO=app.port, VERSION=version)
             f.write(content)
     c.local(f'echo {version} > version.txt')
-    c.local(fr'(tar cf release-{version}.tgz  --disable-copyfile --no-xattrs --exclude __pycache__ --exclude \*.DS_Store --exclude \*.tgz --exclude node_modules --exclude .git\* .)')
+    # Would it be easier to say what we do want?
+    c.local(fr'(tar cf release-{version}.tgz  --disable-copyfile --no-xattrs --exclude __pycache__ --exclude \*.DS_Store --exclude \*.tgz --exclude node_modules --exclude .git\* --exclude .pytest --exclude .poetry .)')
 
     with c.cd(f"apps/{app.name}"):
         crun("./stop || echo Not running")
         crun(f'mkdir -p apps/{version} envs/{version} tmp && rm -rf tmp/* ')
         Transfer(c).put(f'release-{version}.tgz', f'apps/{app.name}')
-        crun(f"cd apps/{version} && tar xf ../../release-{version}.tgz && cp kill start stop uwsgi.ini ../..")
-        crun(f"rm -rf myapp env && ln -sF apps/{version} myapp && ln -sF envs/{version} env")
+        crun(f"""\
+cd apps/{version} &&
+tar xf ../../release-{version}.tgz &&
+cp kill start stop uwsgi.ini ../..""")
+        crun(f"""\
+rm -rf myapp env &&
+ln -sF apps/{version} myapp &&
+ln -sF envs/{version} env"""
+             )
         crun(f"""\
 chmod +x kill start stop &&
 python3.10 -m venv envs/{version} &&
@@ -79,7 +89,8 @@ def deploy():
 Usage: {os.path.basename(sys.argv[0])} appname
 
 This delivers the currently checked-out version of this directory's
-application to the named Opalstack app.""")
+application to the named Opalstack app using its version number as
+identification.""")
     app = args[0]
     cmd = ["git", "tag", "--points-at", "HEAD"]
     version = subprocess.run(cmd, capture_output=True, text=True).stdout.strip()
@@ -107,15 +118,15 @@ Without an argument, displays the current release.
     cmd = ["poetry", "version"]
     if len(sys.argv) == 1:
         retcode = subprocess.call(cmd)
-        print(usage())
-        if os.system("git diff --quiet") != 0:
-            sys.exit("Git branch is dirty: please commit changes before releasing")
-        sys.exit(0)
+        sys.exit(retcode)
 
     if len(sys.argv) != 2:
         sys.exit(usage())
 
     # Modify version according to argument
+    if subprocess.call("git diff --quiet".split()) != 0:
+        sys.exit("Git branch is dirty: please commit "
+                 "or stash changes before releasing")
     cmd.append(sys.argv[1])
     retcode = subprocess.call(cmd)
     if retcode:
