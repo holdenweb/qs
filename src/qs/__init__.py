@@ -147,5 +147,8 @@ Without an argument, displays the current release.
     cmd = ["git", "tag", f"r{version}"]
     retcode = subprocess.call(cmd)
 
+    # Build the project
+    retcode = subprocess.call(["uv" "build"])
+
 if __name__ == '__main__':
     deploy()
