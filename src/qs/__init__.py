@@ -28,7 +28,7 @@ def deliver(c, app, version):
     """
     Actually deliver the code to the remote server and install it.
     """
-    def crun(cmd):
+    def remote(cmd):
         "Run a single remote command."
         if DEBUG:
             print("+", cmd)
@@ -54,31 +54,25 @@ def deliver(c, app, version):
             f.write(content)
     c.local(f'echo {version} > version.txt')
     # Would it be easier to say what we do want?
-    c.local(fr'(tar cf release-{version}.tgz  --disable-copyfile --no-xattrs --exclude __pycache__ --exclude \*.DS_Store --exclude \*.tgz --exclude node_modules --exclude .git\* --exclude .pytest --exclude .poetry .)')
+    c.local(fr'(tar cf release-{version}.tgz  --disable-copyfile --no-xattrs -T Manifest.txt *.py)')
 
     with c.cd(f"apps/{app.name}"):
-        crun("./stop || echo Not running")
-        crun(f'mkdir -p apps/{version} envs/{version} tmp && rm -rf tmp/* ')
+        remote("./stop || echo Not running")
+        remote(f'mkdir -p apps/{version} envs/{version} tmp && rm -rf tmp/* ')
         Transfer(c).put(f'release-{version}.tgz', f'apps/{app.name}')
-        crun(f"""\
+        remote(f"""\
 cd apps/{version} &&
 tar xf ../../release-{version}.tgz &&
-cp kill start stop uwsgi.ini ../..""")
-        crun(f"""\
-rm -rf myapp env &&
-ln -sF apps/{version} myapp &&
-ln -sF envs/{version} env"""
-             )
-        crun(f"""\
+mv kill start stop uwsgi.ini ../..""")
+        remote(f"""\
 chmod +x kill start stop &&
-python3.10 -m venv envs/{version} &&
+uv venv envs/{version} &&
 source envs/{version}/bin/activate &&
-pip install -r apps/{version}/requirements.txt &&
 rm -f myapp ; ln -s apps/{version} myapp &&
 rm -f env ; ln -s envs/{version} env &&
 ln -sf /home/sholden/bin/uwsgi env/bin
 """)
-        crun("pwd && ./start")
+        remote("pwd && ./start")
 
     c.close()
 
@@ -105,51 +99,6 @@ identification.""")
         },
     )
     return deliver(c, app, version)
-
-def release():
-
-    def usage():
-        return f"""\
-Usage: {os.path.basename(sys.argv[0])} [release]
-
-where "release" is an acceptable argument for "poetry version".
-Without an argument, displays the current release.
-"""
-
-    cmd = ["poetry", "version"]
-    if len(sys.argv) == 1:
-        retcode = subprocess.call(cmd)
-        sys.exit(retcode)
-
-    if len(sys.argv) != 2:
-        sys.exit(usage())
-
-    # Modify version according to argument
-    if subprocess.call("git diff --quiet".split()) != 0:
-        sys.exit("Git branch is dirty: please commit "
-                 "or stash changes before releasing")
-    cmd.append(sys.argv[1])
-    retcode = subprocess.call(cmd)
-    if retcode:
-        sys.exit(f"""Command {" ".join(cmd)!r} failed with return code {retcode}""")
-
-    # Check in an updated version.py
-    cmd = ["poetry", "version", "--short"]
-    version = subprocess.run(cmd, capture_output=True, text=True).stdout.strip()
-    pystring = VERSION_TEMPLATE.format(version=version)
-    with open("version.py", "w") as pyfile:
-        pyfile.write(pystring)
-    cmd = ["git", "add", "version.py", "pyproject.toml"]
-    retcode = subprocess.call(cmd)
-    cmd = ["git", "commit", "-m", f"Release r{version}"]
-    retcode = subprocess.call(cmd)
-
-    # Tag the new version
-    cmd = ["git", "tag", f"r{version}"]
-    retcode = subprocess.call(cmd)
-
-    # Build the project
-    retcode = subprocess.call(["uv" "build"])
 
 if __name__ == '__main__':
     deploy()
