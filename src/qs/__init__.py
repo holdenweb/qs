@@ -54,7 +54,7 @@ def deliver(c, app, version):
             f.write(content)
     c.local(f'echo {version} > version.txt')
     # Would it be easier to say what we do want?
-    c.local(fr'(tar cf release-{version}.tgz  --disable-copyfile --no-xattrs -T Manifest.txt *.py)')
+    c.local(fr'(gtar cf release-{version}.tgz --no-xattrs -T Manifest.txt *.py)')
 
     with c.cd(f"apps/{app.name}"):
         remote("./stop || echo Not running")
