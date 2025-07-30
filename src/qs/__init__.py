@@ -12,7 +12,7 @@ from jinja2 import Environment, PackageLoader
 import logging
 logging.basicConfig(level=logging.INFO)
 
-DEBUG = False
+DEBUG = True
 HOSTS = ['opal5.opalstack.com']
 conn = connect('opalstack')
 
@@ -67,10 +67,10 @@ mv kill start stop uwsgi.ini ../..""")
         remote(f"""\
 chmod +x kill start stop &&
 uv venv envs/{version} &&
-source envs/{version}/bin/activate &&
 rm -f myapp ; ln -s apps/{version} myapp &&
 rm -f env ; ln -s envs/{version} env &&
-ln -sf /home/sholden/bin/uwsgi env/bin
+source env/bin/activate &&
+ln -sf /home/sholden/bin/uwsgi env/bin/uwsgi
 """)
         remote("pwd && ./start")
 
