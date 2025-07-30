@@ -18,5 +18,11 @@ build_backend = "uv_build"
 [tool.uv]
 package = true
 
-[tool.uv.build_backend]
+[tool.uv_build]
 module_root = [ "src",]
+
+[tool.uv_build.targets.sdist]
+include = [ "src/qs",]
+
+[tool.uv_build.targets.wheel]
+include = [ "src/qs",]
