@@ -16,7 +16,7 @@ requires = ["uv-build"]
 build_backend = "uv_build"
 
 [tool.uv]
-package = false
+package = true
 
-[tool.uv-build]
-include = [ "src/qs",]
+[tool.uv.build_backend]
+module_root = [ "src",]
