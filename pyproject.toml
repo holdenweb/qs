@@ -11,8 +11,12 @@ deploy = "qs:deploy"
 opalsync = "qs.opalsync:main"
 new_app = "qs.new_app:main"
 
+[build-system]
+requires = ["uv-build"]
+build_backend = "uv_build"
+
 [tool.uv]
-package = true
+package = false
 
 [tool.uv-build]
 include = [ "src/qs",]
