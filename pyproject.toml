@@ -12,7 +12,7 @@ opalsync = "qs.opalsync:main"
 new_app = "qs.new_app:main"
 
 [tool.uv]
-package = false
+package = true
 
 [tool.uv-build]
 include = [ "src/qs",]
