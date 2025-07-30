@@ -29,6 +29,7 @@ def deliver(c, app, version):
     Actually deliver the code to the remote server and install it.
     """
     def crun(cmd):
+        "Run a single remote command."
         if DEBUG:
             print("+", cmd)
         return c.run(cmd)
@@ -88,7 +89,7 @@ def deploy():
         sys.exit(f"""\
 Usage: {os.path.basename(sys.argv[0])} appname
 
-This delivers the currently checked-out version of this directory's
+This delivers the currently checked-out version of the current directory's
 application to the named Opalstack app using its version number as
 identification.""")
     app = args[0]

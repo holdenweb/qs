@@ -1,7 +1,7 @@
 [project]
 name = "qs"
 version = "0.2.10"
-description = "Add your description here"
+description = "Site deployment for Opalstack wsgi sites"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [ "fabric>=3.2.2", "hu>=0.9.0", "jinja2>=3.1.6", "mongoengine>=0.29.1", "opalstack>=1.0.3", "semver>=3.0.4", "toml>=0.10.2",]
@@ -15,17 +15,3 @@ deploy = "qs:deploy"
 opalsync = "qs.opalsync:main"
 new_app = "qs.new_app:main"
 
-[tool.hatch.build]
-include = [ "src/qs",]
-
-[tool.hatch.build.targets.wheel]
-packages = [ "src/qs",]
-
-[tool.hatch.build.targets.sdist]
-only-include = [ "src/qs",]
-
-[tool.hatch.build.targets.wheel.sources]
-"src/qs" = "qs"
-
-[tool.hatch.build.targets.sdist.sources]
-"src/qs" = "qs"
