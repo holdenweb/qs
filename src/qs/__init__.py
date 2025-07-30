@@ -67,8 +67,8 @@ mv kill start stop uwsgi.ini ../..""")
         remote(f"""\
 chmod +x kill start stop &&
 uv venv envs/{version} &&
-rm -f myapp ; ln -s apps/{version} myapp &&
-rm -f env ; ln -s envs/{version} env &&
+rm -f myapp && ln -s apps/{version} myapp &&
+rm -f env && ln -s envs/{version} env &&
 source env/bin/activate &&
 ln -sf /home/sholden/bin/uwsgi env/bin/uwsgi
 """)
