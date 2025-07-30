@@ -14,3 +14,6 @@ new_app = "qs.new_app:main"
 [tool.uv]
 package = false
 
+[tool.uv-build]
+include = [ "src/qs",]
+
