@@ -1,6 +1,6 @@
 [project]
 name = "qs"
-version = "0.2.10"
+version = "0.2.11"
 description = "Site deployment for Opalstack wsgi sites"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -14,4 +14,3 @@ build-backend = "hatchling.build"
 deploy = "qs:deploy"
 opalsync = "qs.opalsync:main"
 new_app = "qs.new_app:main"
-
