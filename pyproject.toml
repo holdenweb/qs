@@ -17,3 +17,6 @@ new_app = "qs.new_app:main"
 
 [tool.hatch.build]
 include = [ "src/qs",]
+
+[tool.uv]
+package = true
