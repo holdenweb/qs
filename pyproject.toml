@@ -20,3 +20,12 @@ package = true
 
 [tool.hatch.build]
 include = [ "src/qs",]
+
+[tool.hatch.build.targets.sdist]
+include = [ "src/qs",]
+
+[tool.hatch.build.targets.wheel]
+include = [ "src/qs",]
+
+[tool.hatch.build.targets.wheel.sources]
+"src/qs" = "qs"
