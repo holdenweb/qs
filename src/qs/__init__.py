@@ -63,6 +63,7 @@ def deliver(c, app, version):
         with c.cd(f'apps/{version}'):
             remote(f'tar xf ../../release-{version}.tgz')
             remote('mv kill start stop uwsgi.ini ../..')
+        remote('pwd')
         remote('chmod +x kill start stop')
         remote(f'~/.local/bin/uv venv envs/{version}')
         remote(f'rm -f myapp && ln -s apps/{version} myapp')
