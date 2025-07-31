@@ -64,7 +64,7 @@ def deliver(c, app, version):
             remote(f'tar xf ../../release-{version}.tgz')
             remote(f'mv kill start stop uwsgi.ini ../..')
         remote('chmod +x kill start stop')
-        remote(f'uv venv envs/{version}')
+        remote(f'~/.local/bin/uv venv envs/{version}')
         remote('rm -f myapp && ln -s apps/{version} myapp')
         remote(f'rm -f env && ln -s envs/{version} env')
         remote('ln -sf /home/sholden/bin/uwsgi env/bin/uwsgi')
