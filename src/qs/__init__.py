@@ -60,20 +60,15 @@ def deliver(c, app, version):
         remote("./stop || echo Not running")
         remote(f'mkdir -p apps/{version} envs/{version} tmp && rm -rf tmp/* ')
         Transfer(c).put(f'release-{version}.tgz', f'apps/{app.name}')
-        remote(f"""\
-cd apps/{version} &&
-tar xf ../../release-{version}.tgz &&
-mv kill start stop uwsgi.ini ../..""")
-        remote(f"""\
-chmod +x kill start stop &&
-uv venv envs/{version} &&
-rm -f myapp && ln -s apps/{version} myapp &&
-rm -f env && ln -s envs/{version} env &&
-source env/bin/activate &&
-ln -sf /home/sholden/bin/uwsgi env/bin/uwsgi
-""")
-        remote("pwd && ./start")
-
+        with c.cd(f'apps/{version}'):
+            remote(f'tar xf ../../release-{version}.tgz')
+            remote(f'mv kill start stop uwsgi.ini ../..')
+        remote('chmod +x kill start stop')
+        remote(f'uv venv envs/{version}')
+        remote('rm -f myapp && ln -s apps/{version} myapp')
+        remote(f'rm -f env && ln -s envs/{version} env')
+        remote('ln -sf /home/sholden/bin/uwsgi env/bin/uwsgi')
+        remote('source env/bin/activate && pwd && ./start')
     c.close()
 
 
