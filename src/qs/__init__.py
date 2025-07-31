@@ -62,10 +62,10 @@ def deliver(c, app, version):
         Transfer(c).put(f'release-{version}.tgz', f'apps/{app.name}')
         with c.cd(f'apps/{version}'):
             remote(f'tar xf ../../release-{version}.tgz')
-            remote(f'mv kill start stop uwsgi.ini ../..')
+            remote('mv kill start stop uwsgi.ini ../..')
         remote('chmod +x kill start stop')
         remote(f'~/.local/bin/uv venv envs/{version}')
-        remote('rm -f myapp && ln -s apps/{version} myapp')
+        remote(f'rm -f myapp && ln -s apps/{version} myapp')
         remote(f'rm -f env && ln -s envs/{version} env')
         remote('ln -sf /home/sholden/bin/uwsgi env/bin/uwsgi')
         remote('source env/bin/activate && pwd && ./start')
