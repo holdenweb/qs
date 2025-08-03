@@ -66,10 +66,12 @@ def deliver(c, app, version):
         remote('pwd')
         remote('chmod +x kill start stop')
         remote(f'~/.local/bin/uv venv --clear envs/{version}')
+        remote('rm -rf dist && ~/.local/bin/uv build')
         remote(f'rm -f myapp && ln -s apps/{version} myapp')
         remote(f'rm -f env && ln -s envs/{version} env')
         remote('ln -sf /home/sholden/bin/uwsgi env/bin/uwsgi')
-        remote('source env/bin/activate && pwd && ./start')
+        remote('rm -rf dist && ~/.local/bin/uv build')
+        remote('source env/bin/activate && pip install dist/*.whl && ./start')
     c.close()
 
 
