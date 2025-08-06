@@ -24,6 +24,25 @@ __version__ = "{version}"
 
 """
 
+WSGIPY_TEMPLATE = """\
+from {name} import app, application
+
+if __name__ == '__main__':
+    app.run(port = {port}, debug = True)
+"""
+def create_wsgi(name, port=2400):
+    with open("wsgi.py", 'w') as f:
+        f.write(
+            WSGIPY_TEMPLATE.format(
+                name=name,
+                port=port
+            )
+        )
+
+def create_wsgi_cli():
+    args = sys.argv[1:]
+    create_wsgi(*args)
+
 def deliver(c, app, version):
     """
     Actually deliver the code to the remote server and install it.
@@ -53,6 +72,8 @@ def deliver(c, app, version):
 
     if not app.port:
         sys.exit("App has no port number: please re-sync by running opalsync.")
+    create_wsgi(name=app.name, port=app.port)
+
     c.local(f'echo {version} > version.txt')
     cmd = fr'(gtar cf {proj_name}-{version}.tgz --no-xattrs -T Manifest.txt wsgi.py dist/{proj_name}-{version}-py3-none-any.whl)'
     print("+ + + About to run", cmd, "+ + +")
