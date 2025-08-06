@@ -34,7 +34,7 @@ def deliver(c, app, version):
             print("+", cmd)
         return c.run(cmd)
 
-    print(f"Deploying with qs {__version__}")
+    print(f"Delivering {app} v{version} with qs {__version__}")
     try:
         app = App.objects.get(name=app)
     except App.DoesNotExist:
@@ -47,32 +47,11 @@ def deliver(c, app, version):
 
     if not app.port:
         sys.exit("App has no port number: please re-sync by running opalsync.")
-    for filename in ('kill', 'start', 'stop', 'uwsgi.ini'):
-        with open(filename, 'w') as f:
-            tpl = jenv.get_template(filename)
-            content = tpl.render(PROJECT=app.name, PORT_NO=app.port, VERSION=version)
-            f.write(content)
     c.local(f'echo {version} > version.txt')
-    # Would it be easier to say what we do want?
-    c.local(fr'(gtar cf release-{version}.tgz --no-xattrs -T Manifest.txt *.py kill stop start uwsgi.ini)')
-
-    with c.cd(f"apps/{app.name}"):
-        remote("./stop || echo Not running")
-        remote(f'mkdir -p apps/{version} envs/{version} tmp && rm -rf tmp/* ')
-        Transfer(c).put(f'release-{version}.tgz', f'apps/{app.name}')
-        with c.cd(f'apps/{version}'):
-            remote(f'tar xf ../../release-{version}.tgz')
-            remote('mv kill start stop uwsgi.ini ../..')
-        remote('pwd')
-        remote('chmod +x kill start stop')
-        remote(f'~/.local/bin/uv venv --clear envs/{version}')
-        remote(f'rm -f myapp && ln -s apps/{version} myapp')
-        remote(f'rm -f env && ln -s envs/{version} env')
-        remote('ln -sf /home/sholden/bin/uwsgi env/bin/uwsgi')
-        with c.cd("myapp"):
-            remote('rm -rf dist && ~/.local/bin/uv build')
-            remote('source env/bin/activate && pip install dist/*.whl && ./start')
-    c.close()
+    c.local(fr'(gtar cf release-{version}.tgz --no-xattrs -T Manifest.txt wsgi.py dist/*-{version}-py3-none-any.whl)')
+    Transfer(c).put(f'release-{version}.tgz', f'apps/{app.name}/releases')
+    cmd = f"ensconce {app.name} package {version}"
+    remote(cmd)
 
 
 def deploy():
