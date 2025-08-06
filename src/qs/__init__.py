@@ -1,7 +1,7 @@
 import os
 import subprocess
 import sys
-
+import tomllib
 from .models import App
 
 from fabric import Connection
@@ -34,6 +34,11 @@ def deliver(c, app, version):
             print("+", cmd)
         return c.run(cmd)
 
+    with open("pyproject.toml", "rb") as toml_file:
+        toml = tomllib.load(toml_file)
+    proj_name = toml['project']['name']
+    mod_name = proj_name.replace("-", "_")
+
     print(f"Delivering {app} v{version} with qs {__version__}")
     try:
         app = App.objects.get(name=app)
@@ -48,9 +53,9 @@ def deliver(c, app, version):
     if not app.port:
         sys.exit("App has no port number: please re-sync by running opalsync.")
     c.local(f'echo {version} > version.txt')
-    c.local(fr'(gtar cf release-{version}.tgz --no-xattrs -T Manifest.txt wsgi.py dist/*-{version}-py3-none-any.whl)')
-    Transfer(c).put(f'release-{version}.tgz', f'apps/{app.name}/releases')
-    cmd = f"ensconce {app.name} package {version}"
+    c.local(fr'(gtar cf {proj_name}-{version}.tgz --no-xattrs -T Manifest.txt wsgi.py dist/{proj_name}-{version}-py3-none-any.whl)')
+    Transfer(c).put(f'{proj_name}-{version}.tgz', f'apps/{app.name}/releases')
+    cmd = f"ensconce {app.name} {proj_name} {version}"
     remote(cmd)
 
 
