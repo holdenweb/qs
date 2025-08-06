@@ -34,6 +34,7 @@ def deliver(c, app, version):
             print("+", cmd)
         return c.run(cmd)
 
+    print("1 Version is", version)
     with open("pyproject.toml", "rb") as toml_file:
         toml = tomllib.load(toml_file)
     proj_name = toml['project']['name']
@@ -72,7 +73,7 @@ application to the named Opalstack app using its version number as
 identification.""")
     app = args[0]
     cmd = ["git", "tag", "--points-at", "HEAD"]
-    version = subprocess.run(cmd, capture_output=True, text=True).stdout.strip()
+    version = subprocess.run(cmd, capture_output=True, text=True).stdout.strip()[1:]
     if not version:
         sys.exit("Unable to find tag for this commit")
     c = Connection(
