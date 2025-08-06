@@ -53,7 +53,9 @@ def deliver(c, app, version):
     if not app.port:
         sys.exit("App has no port number: please re-sync by running opalsync.")
     c.local(f'echo {version} > version.txt')
-    c.local(fr'(gtar cf {proj_name}-{version}.tgz --no-xattrs -T Manifest.txt wsgi.py dist/{proj_name}-{version}-py3-none-any.whl)')
+    cmd = fr'(gtar cf {proj_name}-{version}.tgz --no-xattrs -T Manifest.txt wsgi.py dist/{proj_name}-{version}-py3-none-any.whl)'
+    print("+ + + About to run", cmd, "+ + +")
+    c.local(cmd)
     Transfer(c).put(f'{proj_name}-{version}.tgz', f'apps/{app.name}/releases')
     cmd = f"ensconce {app.name} {proj_name} {version}"
     remote(cmd)
