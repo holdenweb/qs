@@ -14,7 +14,7 @@ build-backend = "uv_build"
 deploy = "qs:deploy"
 opalsync = "qs.opalsync:main"
 new_app = "qs.new_app:main"
-create_wsgi = "qs:create_wsgi_cli:"
+create_wsgi = "qs:create_wsgi_cli"
 
 [tool.uv.build-backend]
 module-root = "src"
