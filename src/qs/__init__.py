@@ -1,3 +1,4 @@
+import wingdbstub
 import os
 import subprocess
 import sys
