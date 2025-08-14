@@ -1,7 +1,6 @@
 import os
 import subprocess
 import sys
-import tomllib
 from .models import App
 
 from fabric import Connection
@@ -53,9 +52,7 @@ def deliver(c, app, version):
             print("=", cmd)
         return c.run(cmd)
 
-    with open("pyproject.toml", "rb") as toml_file:
-        toml = tomllib.load(toml_file)
-    proj_name = toml['project']['name']
+    proj_name = subprocess.run(cmd, capture_output=True, text=True).stdout.split()[0]
     mod_name = proj_name.replace("-", "_")
 
     print(f"qs{__version__} delivering {app} v{version}")
