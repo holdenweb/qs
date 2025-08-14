@@ -1,4 +1,3 @@
-import wingdbstub
 import os
 import subprocess
 import sys
@@ -54,17 +53,17 @@ def deliver(c, app, version):
             print("=", cmd)
         return c.run(cmd)
 
-    print("1 Version is", version)
     with open("pyproject.toml", "rb") as toml_file:
         toml = tomllib.load(toml_file)
     proj_name = toml['project']['name']
     mod_name = proj_name.replace("-", "_")
 
-    print(f"Delivering {app} v{version} with qs {__version__}")
+    print(f"qs{__version__} delivering {app} v{version}")
     try:
         app = App.objects.get(name=app)
     except App.DoesNotExist:
         sys.exit(f"Application {app!r} not found: do you need to run opalsync?")
+
     loader = PackageLoader('qs', 'templates')
     jenv = Environment(
         loader=loader,
@@ -73,7 +72,14 @@ def deliver(c, app, version):
 
     if not app.port:
         sys.exit("App has no port number: please re-sync by running opalsync.")
+    for filename in ('kill', 'start', 'stop', 'uwsgi.ini'):
+        with open(filename, 'w') as f:
+            tpl = jenv.get_template(filename)
+            content = tpl.render(PROJECT=app.name, PORT_NO=app.port, VERSION=version)
+            f.write(content)
+    c.local(f'echo {version} > version.txt')
     create_wsgi(name=mod_name, port=app.port)
+    sys.exit("OK so far?")
 
     c.local(f'echo {version} > version.txt')
     cmd = fr'(gtar cf {proj_name}-{version}.tgz --no-xattrs -T Manifest.txt wsgi.py dist/{proj_name}-{version}-py3-none-any.whl)'
