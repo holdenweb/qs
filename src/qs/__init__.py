@@ -52,7 +52,7 @@ def deliver(c, app, version):
             print("=", cmd)
         return c.run(cmd)
 
-    proj_name = subprocess.run(cmd, capture_output=True, text=True).stdout.split()[0]
+    proj_name = subprocess.run(["uv", "version"], capture_output=True, text=True).stdout.split()[0]
     mod_name = proj_name.replace("-", "_")
 
     print(f"qs{__version__} delivering {app} v{version}")
