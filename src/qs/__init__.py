@@ -42,7 +42,7 @@ def create_wsgi_cli():
     args = sys.argv[1:]
     create_wsgi(*args)
 
-def deliver(c, app, version):
+def deliver(c: Connection, app_name, version):
     """
     Actually deliver the code to the remote server and install it.
     """
@@ -55,11 +55,11 @@ def deliver(c, app, version):
     proj_name = subprocess.run(["uv", "version"], capture_output=True, text=True).stdout.split()[0]
     mod_name = proj_name.replace("-", "_")
 
-    print(f"qs{__version__} delivering {app} v{version}")
+    print(f"qs{__version__} delivering {app_name} v{version}")
     try:
-        app = App.objects.get(name=app)
+        app_name = App.objects.get(name=app_name)
     except App.DoesNotExist:
-        sys.exit(f"Application {app!r} not found: do you need to run opalsync?")
+        sys.exit(f"Application {app_name!r} not found: do you need to run opalsync?")
 
     loader = PackageLoader('qs', 'templates')
     jenv = Environment(
@@ -67,28 +67,28 @@ def deliver(c, app, version):
         autoescape=False
     )
 
-    if not app.port:
+    if not app_name.port:
         sys.exit("App has no port number: please re-sync by running opalsync.")
     for filename in ('kill', 'start', 'stop', 'uwsgi.ini'):
         with open(filename, 'w') as f:
             tpl = jenv.get_template(filename)
-            content = tpl.render(PROJECT=app.name, PORT_NO=app.port, VERSION=version)
+            content = tpl.render(PROJECT=app_name.name, PORT_NO=app_name.port, VERSION=version)
             f.write(content)
     c.local(f'echo {version} > version.txt')
-    create_wsgi(name=mod_name, port=app.port)
+    create_wsgi(name=mod_name, port=app_name.port)
     sys.exit("OK so far?")
 
     c.local(f'echo {version} > version.txt')
     cmd = fr'(gtar cf {proj_name}-{version}.tgz --no-xattrs -T Manifest.txt wsgi.py dist/{proj_name}-{version}-py3-none-any.whl)'
     c.local(cmd)
-    with c.cd(f"apps/{app.name}"):
+    with c.cd(f"apps/{app_name.name}"):
         remote("mkdir -p html md apps dist envs releases wsgis")
-    Transfer(c).put(f'{proj_name}-{version}.tgz', f'apps/{app.name}/releases/{proj_name}-{version}.tgz')
-    cmd = f"ensconce {app.name} {proj_name} {version}"
+    Transfer(c).put(f'{proj_name}-{version}.tgz', f'apps/{app_name.name}/releases/{proj_name}-{version}.tgz')
+    cmd = f"ensconce {app_name.name} {proj_name} {version}"
     remote(cmd)
 
 
-def deploy():
+def deploy_cli():
     args = sys.argv[1:]
     if len(args) != 1:
         sys.exit(f"""\
@@ -98,6 +98,8 @@ This delivers the currently checked-out version of the current directory's
 application to the named Opalstack app using its version number as
 identification.""")
     app = args[0]
+
+def deploy(app: str):
     cmd = ["git", "tag", "--points-at", "HEAD"]
     version = subprocess.run(cmd, capture_output=True, text=True).stdout.strip()[1:]
     if not version:
@@ -112,4 +114,4 @@ identification.""")
     return deliver(c, app, version)
 
 if __name__ == '__main__':
-    deploy()
+    deploy_cli()
