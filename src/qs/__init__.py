@@ -85,8 +85,8 @@ def deliver(c: Connection, app_name, version):
         remote("mkdir -p html md apps dist envs releases wsgis")
     Transfer(c).put(f'{app.name}-{version}.tgz', f'apps/{app.name}/releases/{proj_name}-{version}.tgz')
     cmd = f"ensconce {app.name} {proj_name} {version}"
-    remote(cmd)app
-app
+    remote(cmd)
+
 
 def deploy_cli():
     args = sys.argv[1:]
