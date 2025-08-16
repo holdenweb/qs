@@ -101,7 +101,11 @@ identification.""")
 
 def deploy(app: str):
     cmd = ["git", "tag", "--points-at", "HEAD"]
-    version = subprocess.run(cmd, capture_output=True, text=True).stdout.strip()[1:]
+    # Take the first tag returned, which appears to be the version
+    version = subprocess.run(cmd,
+                             capture_output=True,
+                             text=True
+    ).stdout.split()[0].strip()[1:]
     if not version:
         sys.exit("Unable to find tag for this commit")
     c = Connection(
