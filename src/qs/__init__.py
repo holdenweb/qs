@@ -57,7 +57,7 @@ def deliver(c: Connection, app_name, version):
 
     print(f"qs{__version__} delivering {app_name} v{version}")
     try:
-        app_name = App.objects.get(name=app_name)
+        app = App.objects.get(name=app_name)
     except App.DoesNotExist:
         sys.exit(f"Application {app_name!r} not found: do you need to run opalsync?")
 
@@ -67,26 +67,26 @@ def deliver(c: Connection, app_name, version):
         autoescape=False
     )
 
-    if not app_name.port:
+    if not app.port:
         sys.exit("App has no port number: please re-sync by running opalsync.")
+
     for filename in ('kill', 'start', 'stop', 'uwsgi.ini'):
         with open(filename, 'w') as f:
             tpl = jenv.get_template(filename)
-            content = tpl.render(PROJECT=app_name.name, PORT_NO=app_name.port, VERSION=version)
+            content = tpl.render(PROJECT=app.name, PORT_NO=app.port, VERSION=version)
             f.write(content)
-    c.local(f'echo {version} > version.txt')
-    create_wsgi(name=mod_name, port=app_name.port)
-    sys.exit("OK so far?")
 
+    c.local(f'echo {version} > version.txt')
+    create_wsgi(name=mod_name, port=app.port)
     c.local(f'echo {version} > version.txt')
     cmd = fr'(gtar cf {proj_name}-{version}.tgz --no-xattrs -T Manifest.txt wsgi.py dist/{proj_name}-{version}-py3-none-any.whl)'
     c.local(cmd)
     with c.cd(f"apps/{app_name.name}"):
         remote("mkdir -p html md apps dist envs releases wsgis")
-    Transfer(c).put(f'{proj_name}-{version}.tgz', f'apps/{app_name.name}/releases/{proj_name}-{version}.tgz')
+    Transfer(c).put(f'appme}-{version}.tgz', f'apps/{app_name.name}/releases/{proj_name}-{version}.tgz')
     cmd = f"ensconce {app_name.name} {proj_name} {version}"
-    remote(cmd)
-
+    remote(cmd)app
+app
 
 def deploy_cli():
     args = sys.argv[1:]
