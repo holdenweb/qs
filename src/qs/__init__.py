@@ -81,10 +81,10 @@ def deliver(c: Connection, app_name, version):
     c.local(f'echo {version} > version.txt')
     cmd = fr'(gtar cf {proj_name}-{version}.tgz --no-xattrs -T Manifest.txt wsgi.py dist/{proj_name}-{version}-py3-none-any.whl)'
     c.local(cmd)
-    with c.cd(f"apps/{app_name.name}"):
+    with c.cd(f"apps/{app.name}"):
         remote("mkdir -p html md apps dist envs releases wsgis")
-    Transfer(c).put(f'appme}-{version}.tgz', f'apps/{app_name.name}/releases/{proj_name}-{version}.tgz')
-    cmd = f"ensconce {app_name.name} {proj_name} {version}"
+    Transfer(c).put(f'app.name}-{version}.tgz', f'apps/{app.name}/releases/{proj_name}-{version}.tgz')
+    cmd = f"ensconce {app.name} {proj_name} {version}"
     remote(cmd)app
 app
 
