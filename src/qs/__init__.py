@@ -100,7 +100,7 @@ def deploy(app_name: str):
     #     were different! Unlikely to hurt in the meantime.
     with c.cd(f"apps/{app.name}"):
         remote("mkdir -p html md dist releases")
-    Transfer(c).put(f'{app.name}-{version}.tgz', f'apps/{app.name}/releases/{proj_name}-{version}.tgz')
+    Transfer(c).put(f'{proj_name}-{version}.tgz', f'apps/{app.name}/releases/{proj_name}-{version}.tgz')
 
     # Now install it server-side!
     cmd = f"ensconce {app.name} {proj_name} {version}"
