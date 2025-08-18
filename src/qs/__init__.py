@@ -91,7 +91,7 @@ def deploy(app_name: str):
     create_wsgi(name=mod_name, port=app.port)
 
     # Create a distribution to send up the wire to the server
-    cmd = fr'(gtar cf {proj_name}-{version}.tgz --no-xattrs -T Manifest.txt wsgi.py dist/{proj_name}-{version}-py3-none-any.whl)'
+    cmd = fr'(gtar cf {proj_name}-{version}.tgz --no-xattrs -T Manifest.txt ./wsgi.py ./src ./pyproject.toml)'
     c.local(cmd)
 
     # Create necessary (?) remote directories and deliver the distro
@@ -99,7 +99,7 @@ def deploy(app_name: str):
     #     Back when the app saved its own versions things
     #     were different! Unlikely to hurt in the meantime.
     with c.cd(f"apps/{app.name}"):
-        remote("mkdir -p html md dist releases tmp")
+        remote("mkdir -p dist releases tmp")
     Transfer(c).put(f'{proj_name}-{version}.tgz', f'apps/{app.name}/releases/{proj_name}-{version}.tgz')
 
     # Now install it server-side!
