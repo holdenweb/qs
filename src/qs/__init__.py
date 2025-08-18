@@ -35,6 +35,12 @@ def deploy(app_name: str):
 
     At present this is relatively easy because we are only using one server.
     """
+    def remote(cmd):
+        "Run a single remote command."
+        if DEBUG:
+            print("=", cmd)
+        return c.run(cmd)
+
     #
     # Locate the tag for the current commit - this can
     # fail if the same commit is given multiple tags
