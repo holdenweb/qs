@@ -1,3 +1,5 @@
+import sys
+
 WSGIPY_TEMPLATE = """\
 from {name} import app, application
 
