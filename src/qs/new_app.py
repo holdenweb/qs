@@ -43,7 +43,7 @@ def create_app(a_mgr, name, manager_id):
 def main(*argv):
     if len(argv) == 1:
         names = [input("Pam name: ")]
-    elif len(argv == 2):
+    elif len(argv) == 2:
         names = [argv[1]]
     elif len(argv) > 2:
         sys.exit("Only one, please")
