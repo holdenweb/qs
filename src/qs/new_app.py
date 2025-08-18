@@ -53,8 +53,9 @@ def build(argv):
     servers = s_mgr.list_all()
     server = next(s for s in servers["web_servers"] if s['hostname']==SERVER_NAME)
     server_id = server['id']
-    manager = OD(u_mgr.list_all({'name': MANAGER_NAME, 'server': server_id})[0])
-
+    manager = [u for u in u_mgr.list_all()
+                      if u['name']=='sholden' and u['server']==server['id']][0]
+    manager = OD(manager)
     app_mgr = ops.api.AppsManager(api)
 
     conn = connect(db='opalstack')
