@@ -40,7 +40,10 @@ def create_app(a_mgr, name, manager_id):
     db_app.save()
     return OD(app)
 
-def main(argv):
+def main():
+    return build(sys.argv)
+
+def build(argv)
     if len(argv) == 2:
         names = [argv[1]]
     else:
@@ -59,6 +62,5 @@ def main(argv):
         app = create_app(app_mgr, name, manager.id)
         print("Created on port", app.port, file=sys.stderr)
 
-
 if __name__ == '__main__':
-    main(sys.argv)
+    main()
