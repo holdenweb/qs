@@ -1,6 +1,6 @@
 [project]
 name = "qs"
-version = "0.3.36"
+version = "0.3.37"
 description = "Site deployment for Opalstack wsgi sites"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -14,7 +14,7 @@ build-backend = "uv_build"
 deploy = "qs:deploy"
 opalsync = "qs.opalsync:main"
 new_app = "qs.new_app:main"
-create_wsgi = "qs:create_wsgi_cli"
+create_wsgi = "qs.create_wsgi:main"
 
 [tool.uv.build-backend]
 module-root = "src"

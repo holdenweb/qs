@@ -16,6 +16,19 @@ token = os.getenv('OPALSTACK_TOKEN')
 api = ops.Api(token=token)
 
 def create_app(a_mgr, name, manager_id):
+    """
+    Create a new Opalstack application
+
+    A custom application has a directory and a port number.
+    Everything else is provided by Opalstack's install script,
+    so ignoring that means you can set up the environment to
+    suit your application.
+
+    Oplstack apps also install a crontab line, which never
+    seems to get deleted, to restart the app periodically
+    if it's crashed - which would seem a bit arbitrary to a
+    customer in th middle of a transaction.
+    """
     app = a_mgr.create_one(
         dict(
             name=name,
@@ -27,13 +40,13 @@ def create_app(a_mgr, name, manager_id):
     db_app.save()
     return OD(app)
 
-def main():
-    if len(sys.argv) == 1:
-        names = [input("App name: ")]
+def main(*argv):
+    if len(argv) == 1:
+        names = [input("Pam name: ")]
+    elif len(argv) > 1:
+        sys.exit("Only one, please")
     else:
-        names = sys.argv[1:]
-    if len(names) > 1:
-        sys.exit("One at a time, please")
+        sys.exit("Usage: new_app.py pam-name")
     s_mgr = ops.api.ServersManager(api)
     u_mgr = ops.api.OSUsersManager(api)
     servers = s_mgr.list_all()
@@ -41,13 +54,13 @@ def main():
     server_id = server['id']
     manager = OD(u_mgr.list_all({'name': MANAGER_NAME, 'server': server_id})[0])
 
-    a_mgr = ops.api.AppsManager(api)
+    app_mgr = ops.api.AppsManager(api)
 
     conn = connect(db='opalstack')
     for name in names:
-        app = create_app(a_mgr, name, manager.id)
+        app = create_app(app_mgr, name, manager.id)
         print("Created on port", app.port, file=sys.stderr)
 
 
 if __name__ == '__main__':
-    main()
+    main(*sys.argv)
