@@ -41,7 +41,7 @@ def create_app(a_mgr, name, manager_id):
     return OD(app)
 
 def main(argv):
-    elif len(argv) == 2:
+    if len(argv) == 2:
         names = [argv[1]]
     else:
         sys.exit("Usage: new_app.py pam-name")
