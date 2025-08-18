@@ -109,7 +109,8 @@ Usage: {os.path.basename(sys.argv[0])} appname
 This delivers the currently checked-out version of the current directory's
 application to the named Opalstack app using its version number as
 identification.""")
-    app = args[0]
+    app_name = args[0]
+    deploy(app_name)
 
 if __name__ == '__main__':
     deploy_cli()
