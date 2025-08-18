@@ -43,7 +43,7 @@ def create_app(a_mgr, name, manager_id):
 def main():
     return build(sys.argv)
 
-def build(argv)
+def build(argv):
     if len(argv) == 2:
         names = [argv[1]]
     else:
