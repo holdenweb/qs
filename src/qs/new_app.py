@@ -40,13 +40,9 @@ def create_app(a_mgr, name, manager_id):
     db_app.save()
     return OD(app)
 
-def main(*argv):
-    if len(argv) == 1:
-        names = [input("Pam name: ")]
+def main(argv):
     elif len(argv) == 2:
         names = [argv[1]]
-    elif len(argv) > 2:
-        sys.exit("Only one, please")
     else:
         sys.exit("Usage: new_app.py pam-name")
     s_mgr = ops.api.ServersManager(api)
@@ -65,4 +61,4 @@ def main(*argv):
 
 
 if __name__ == '__main__':
-    main(*sys.argv)
+    main(sys.argv)
