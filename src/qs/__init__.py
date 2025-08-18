@@ -103,7 +103,8 @@ def deploy(app_name: str):
     Transfer(c).put(f'{proj_name}-{version}.tgz', f'apps/{app.name}/releases/{proj_name}-{version}.tgz')
 
     # Now install it server-side!
-    cmd = f"ensconce {app.name} {proj_name} {version}"
+    cmd = "Echo check it out"
+    # f"ensconce {app.name} {proj_name} {version}"
     remote(cmd)
 
 
