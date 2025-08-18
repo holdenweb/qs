@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 from .models import App
+from .create_wsgi import create_wsgi
 
 from fabric import Connection
 from fabric.transfer import Transfer
