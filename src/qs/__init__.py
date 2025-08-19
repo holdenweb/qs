@@ -101,13 +101,17 @@ def deploy(app_name: str):
     #     Back when the app saved its own versions things
     #     were different! Unlikely to hurt in the meantime.
     with c.cd(f"apps/{app.name}"):
+        remote("rm -rf .venv *")
         remote("mkdir -p dist tmp")
     Transfer(c).put(f'{proj_name}-{version}.tgz', f'apps/{app.name}/dist/{proj_name}-{version}.tgz')
 
     # Now install it server-side!
-    cmd = "echo check it out"
     # f"ensconce {app.name} {proj_name} {version}"
-    remote(cmd)
+    with c.cd(f"apps/{app.name}"):
+        remote("tar xvf dist/{proj_name}-{version}.tgz")
+        remote("chmod +x start stop kill")
+        remote("uv venv")
+        remote("./start")
 
 
 def deploy_cli():
