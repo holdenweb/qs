@@ -110,7 +110,7 @@ def deploy(app_name: str):
     with c.cd(f"apps/{app.name}"):
         remote(f"tar xvf dist/{proj_name}-{version}.tgz")
         remote("chmod +x start stop kill")
-        remote("uv venv")
+        remote("uv sync")
         remote("./start")
 
 
