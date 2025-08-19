@@ -93,7 +93,7 @@ def deploy(app_name: str):
     # Create a distribution to send up the wire to the server.
     # Note that there is no longer a need to create a wheel.
     cmd = (fr'(gtar cf {proj_name}-{version}.tgz --no-xattrs -T Manifest.txt '
-           './kill ./stop ./start ./uwsgi.ini ./wsgi.py ./src ./pyproject.toml)')
+           './kill ./stop ./start ./uwsgi.ini ./wsgi.py ./src ./pyproject.toml ./README.md')
     c.local(cmd)
 
     # Create necessary (?) remote directories and deliver the distro.
