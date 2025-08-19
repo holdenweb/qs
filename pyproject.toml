@@ -1,6 +1,6 @@
 [project]
 name = "qs"
-version = "0.3.38a18"
+version = "0.3.39"
 description = "Site deployment for Opalstack wsgi sites"
 readme = "README.md"
 requires-python = ">=3.12"
