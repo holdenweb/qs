@@ -414,7 +414,7 @@ wheels = [
 
 [[package]]
 name = "qs"
-version = "0.3.43"
+version = "0.3.44"
 source = { editable = "." }
 dependencies = [
     { name = "fabric" },
