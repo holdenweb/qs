@@ -108,7 +108,7 @@ def deploy(app_name: str):
     # Now install it server-side!
     # f"ensconce {app.name} {proj_name} {version}"
     with c.cd(f"apps/{app.name}"):
-        remote("tar xvf dist/{proj_name}-{version}.tgz")
+        remote(f"tar xvf dist/{proj_name}-{version}.tgz")
         remote("chmod +x start stop kill")
         remote("uv venv")
         remote("./start")
