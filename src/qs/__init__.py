@@ -90,17 +90,19 @@ def deploy(app_name: str):
     c.local(f'echo {version} > version.txt')
     create_wsgi(name=mod_name, port=app.port)
 
-    # Create a distribution to send up the wire to the server
-    cmd = fr'(gtar cf {proj_name}-{version}.tgz --no-xattrs -T Manifest.txt ./wsgi.py ./src ./pyproject.toml)'
+    # Create a distribution to send up the wire to the server.
+    # Note that there is no longer a need to create a wheel.
+    cmd = (fr'(gtar cf {proj_name}-{version}.tgz --no-xattrs -T Manifest.txt '
+           './kill ./stop ./start ./uwsgi.ini ./wsgi.py ./src ./pyproject.toml)')
     c.local(cmd)
 
-    # Create necessary (?) remote directories and deliver the distro
+    # Create necessary (?) remote directories and deliver the distro.
     # XXX Note that these should really be app-specfic.
     #     Back when the app saved its own versions things
     #     were different! Unlikely to hurt in the meantime.
     with c.cd(f"apps/{app.name}"):
-        remote("mkdir -p dist releases tmp")
-    Transfer(c).put(f'{proj_name}-{version}.tgz', f'apps/{app.name}/releases/{proj_name}-{version}.tgz')
+        remote("mkdir -p dist tmp")
+    Transfer(c).put(f'{proj_name}-{version}.tgz', f'apps/{app.name}/dist/{proj_name}-{version}.tgz')
 
     # Now install it server-side!
     cmd = "Echo check it out"
