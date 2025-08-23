@@ -64,7 +64,7 @@ def deploy(app_name: str):
 
     # Establish project and module names
     proj_name, v = subprocess.run(["uv", "version"], capture_output=True, text=True).stdout.split()
-    assert v == version, "`uv vserion` and `git tag` disagree on version"
+    assert v == version, "`uv version` and `git tag` disagree on version"
     mod_name = proj_name.replace("-", "_")
     print(f"qs{__version__} delivering {app_name} v{version}")
 
@@ -92,7 +92,7 @@ def deploy(app_name: str):
 
     # Create a distribution to send up the wire to the server.
     # Note that there is no longer a need to create a wheel.
-    cmd = (fr'(gtar cf {proj_name}-{version}.tgz --no-xattrs -T Manifest.txt '
+    cmd = (fr'(gtar cf {proj_name}-{version}.tgz --no-xattrs '
            './kill ./stop ./start ./uwsgi.ini ./wsgi.py ./src ./pyproject.toml ./README.md)')
     c.local(cmd)
 
