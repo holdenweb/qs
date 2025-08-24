@@ -96,11 +96,12 @@ def deploy(app_name: str):
            './kill ./stop ./start ./uwsgi.ini ./wsgi.py ./src ./pyproject.toml ./README.md)')
     c.local(cmd)
 
-    # Create necessary (?) remote directories and deliver the distro.
+    # Stop and wipe any existing app, wipe and reinstall.
     # XXX Note that these should really be app-specfic.
     #     Back when the app saved its own versions things
     #     were different! Unlikely to hurt in the meantime.
     with c.cd(f"apps/{app.name}"):
+        remote("if [ -e stop ] ; then ./stop ; fi")
         remote("rm -rf .venv *")
         remote("mkdir -p dist tmp")
     Transfer(c).put(f'{proj_name}-{version}.tgz', f'apps/{app.name}/dist/{proj_name}-{version}.tgz')
