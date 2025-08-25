@@ -112,6 +112,8 @@ def deploy(app_name: str):
         remote(f"tar xvf dist/{proj_name}-{version}.tgz")
         remote("chmod +x start stop kill")
         remote("uv sync")
+        remote(f"if [ -e ~/envs/{proj_name} ] ; then cp ~/envs/{proj_name} .env ; "
+               "else echo 'No env file' ; fi")
         remote("./start")
 
 
