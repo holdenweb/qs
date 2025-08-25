@@ -101,7 +101,7 @@ def deploy(app_name: str):
     #     Back when the app saved its own versions things
     #     were different! Unlikely to hurt in the meantime.
     with c.cd(f"apps/{app.name}"):
-        remote("if [ -e stop ] ; then ./stop ; else echo 'No stop file' ; fi")
+        remote("if [ -e stop ] ; then ./stop || else echo 'No stop file' ; fi")
         remote("rm -rf .venv *")
         remote("mkdir -p dist tmp")
     Transfer(c).put(f'{proj_name}-{version}.tgz', f'apps/{app.name}/dist/{proj_name}-{version}.tgz')
