@@ -112,6 +112,7 @@ def deploy(app_name: str):
         remote(f"tar xvf dist/{proj_name}-{version}.tgz")
         remote("chmod +x start stop kill")
         remote("uv sync")
+        remote("uv pip install uwsgi")  # mirror dev as closely as possible
         remote("./start")
 
 

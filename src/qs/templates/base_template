@@ -1,7 +1,8 @@
 #!/bin/bash
 source ~/.ssh/env
-export PYTHONPATH=$HOME/apps/{{PROJECT}}/src
-PIDFILE="$HOME/apps/{{PROJECT}}/tmp/{{PROJECT}}.pid"
+APPHOME=$HOME/apps/{{PROJECT}}
+export PYTHONPATH=${APPHOME}/src
+PIDFILE="${APPHOME}/tmp/{{PROJECT}}.pid"
 {% block content %}
 echo "$0: This file does nothing"
 {% endblock %}

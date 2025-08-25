@@ -7,5 +7,5 @@ if [ -e "${PIDFILE}" ] && (ps -u $(whoami) -opid= |
 fi
 echo -n 'Started at '
 date "+%Y-%m-%d %H:%M:%S"
-/home/sholden/.local/bin/uwsgi --ini /home/sholden/apps/{{PROJECT}}/uwsgi.ini
+${APPHOME}/.venv/bin/uwsgi --ini ${APPHOME}/uwsgi.ini
 {% endblock %}
