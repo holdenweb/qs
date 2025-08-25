@@ -2,7 +2,7 @@
 {% block content %}
 if [ -e "${PIDFILE}" ] && (ps -u $(whoami) -opid= |
                            grep -P "^\s*$(cat ${PIDFILE})$" &> /dev/null); then
-    /home/sholden/.local/bin/uwsgi --stop ${PIDFILE}
+    ${APPHOME}/.venv/bin/uwsgi --stop ${PIDFILE}
     rm $PIDFILE
 else
     echo "No PID file"
