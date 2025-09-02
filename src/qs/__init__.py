@@ -12,7 +12,7 @@ from jinja2 import Environment, PackageLoader
 import logging
 logging.basicConfig(level=logging.INFO)
 
-DEBUG = True
+DEBUG = False
 HOSTS = ['opal5.opalstack.com']
 conn = connect('opalstack')
 
@@ -51,11 +51,25 @@ def deploy(app_name: str):
                              text=True
     ).stdout.strip()[1:]
     if not version:
-        sys.exit("Unable to find tag for this commit")
+        sys.exit("Unable to find any tag for current commit")
+
+    # Get the app description from the database
+    try:
+        app = App.objects.get(name=app_name)
+    except App.DoesNotExist:
+        sys.exit(f"Application {app_name!r} not found: do you need to run opalsync?")
+    if not app.port:
+        sys.exit("App has no port number: do you need to run opalsync?")
+
+    try:
+        s = Server.objects.get(id=app.server)
+    except Server.DoesNotExist:
+        sys.exit(f"App {app_name} has no server: cannot proceed.")
 
     # Create server connection
+    # XXX could we look server up from application ... ?
     c = Connection(
-        host=HOSTS[0],
+        host=server.hostname,
         user="sholden",
         connect_kwargs={
             "key_filename": "/Users/sholden/.ssh/id_rsa",
@@ -67,14 +81,6 @@ def deploy(app_name: str):
     assert v == version, "`uv version` and `git tag` disagree on version"
     mod_name = proj_name.replace("-", "_")
     print(f"qs{__version__} delivering {app_name} v{version}")
-
-    # Get the app description from the database
-    try:
-        app = App.objects.get(name=app_name)
-    except App.DoesNotExist:
-        sys.exit(f"Application {app_name!r} not found: do you need to run opalsync?")
-    if not app.port:
-        sys.exit("App has no port number: please re-sync by running opalsync.")
 
     # Create deployment-specific files
     loader = PackageLoader('qs', 'templates')
