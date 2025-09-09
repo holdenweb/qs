@@ -1,7 +1,7 @@
 import os
 import subprocess
 import sys
-from .models import App
+from .models import App, Server
 from .create_wsgi import create_wsgi
 
 from fabric import Connection
@@ -13,7 +13,8 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 DEBUG = False
-HOSTS = ['opal5.opalstack.com']
+
+# Establish mongoengine connection
 conn = connect('opalstack')
 
 from .version import __version__
@@ -62,7 +63,7 @@ def deploy(app_name: str):
         sys.exit("App has no port number: do you need to run opalsync?")
 
     try:
-        s = Server.objects.get(id=app.server)
+        server = Server.objects.get(id=app.server)
     except Server.DoesNotExist:
         sys.exit(f"App {app_name} has no server: cannot proceed.")
 
