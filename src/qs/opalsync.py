@@ -8,12 +8,6 @@ from mongoengine import connect
 from qs.models import class_for
 import opalstack as ostack
 
-ostack.apps
-
-
-MANAGER_NAME = "sholden"
-SERVER_NAME = "opal5.opalstack.com"
-
 token = os.getenv('OPALSTACK_TOKEN', None)
 if not token:
     sys.exit("OPALSTACK_TOKEN not found in environment")

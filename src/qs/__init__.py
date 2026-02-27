@@ -12,23 +12,11 @@ from jinja2 import Environment, PackageLoader
 import logging
 logging.basicConfig(level=logging.INFO)
 
-DEBUG = False
-
 # Establish mongoengine connection
 conn = connect('opalstack')
 
 from .version import __version__
 
-VERSION_TEMPLATE = """\
-
-__version__ = "{version}"
-
-"""
-def remote(cmd):
-    "Run a single remote command."
-    if DEBUG:
-        print("=", cmd)
-    return c.run(cmd)
 
 def deploy(app_name: str):
     """
@@ -38,8 +26,6 @@ def deploy(app_name: str):
     """
     def remote(cmd):
         "Run a single remote command."
-        if DEBUG:
-            print("=", cmd)
         return c.run(cmd)
 
     #
@@ -68,7 +54,6 @@ def deploy(app_name: str):
         sys.exit(f"App {app_name} has no server: cannot proceed.")
 
     # Create server connection
-    # XXX could we look server up from application ... ?
     c = Connection(
         host=server.hostname,
         user="sholden",
