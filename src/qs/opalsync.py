@@ -8,10 +8,6 @@ from mongoengine import connect
 from qs.models import class_for
 import opalstack as ostack
 
-token = os.getenv('OPALSTACK_TOKEN', None)
-if not token:
-    sys.exit("OPALSTACK_TOKEN not found in environment")
-
 object_type_names = ['Accounts', 'Addresses', 'Apps', 'Certs', 'Dnsrecords', 'Domains', 'Ips', 'Mailusers',
                 'Mariadbs', 'Mariausers', 'Notices', 'OSUsers', 'OSVars', 'Psqldbs', 'Psqlusers',
                 'Quarantinedmails', 'Servers', 'Sites', 'Tokens']
@@ -37,6 +33,9 @@ specials = {'Servers': server_transfer}
 
 
 def main():
+    token = os.getenv('OPALSTACK_TOKEN', None)
+    if not token:
+        sys.exit("OPALSTACK_TOKEN not found in environment")
     api = ostack.Api(token=token)
     connect("opalstack")
     for type_name in object_type_names:

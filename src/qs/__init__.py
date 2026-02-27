@@ -17,9 +17,6 @@ logging.basicConfig(level=logging.INFO)
 SSH_USER = os.environ.get("QS_SSH_USER", getpass.getuser())
 SSH_KEY = os.environ.get("QS_SSH_KEY", os.path.expanduser("~/.ssh/id_rsa"))
 
-# Establish mongoengine connection
-conn = connect('opalstack')
-
 from .version import __version__
 
 
@@ -29,6 +26,8 @@ def deploy(app_name: str):
 
     At present this is relatively easy because we are only using one server.
     """
+    connect('opalstack')
+
     def remote(cmd):
         "Run a single remote command."
         return c.run(cmd)

@@ -46,19 +46,28 @@ _original_connect = mongoengine.connect
 
 
 def _mock_connect(*args, **kwargs):
-    """Wrapper that forces mongomock as the backend for all connections."""
+    """Wrapper that forces mongomock as the backend for all connections.
+
+    If a connection with the requested alias already exists we return it
+    as-is so that in-memory data is preserved (mongomock databases live
+    only as long as the client object).
+    """
     kwargs["mongo_client_class"] = mongomock.MongoClient
     alias = kwargs.get("alias", "default")
-    # Disconnect any existing connection with this alias to avoid
-    # mongoengine's "alias already exists" error on repeated connect().
+    # Reuse an existing connection to keep in-memory data intact.
     try:
-        mongoengine.disconnect(alias=alias)
+        return _original_connect(*args, **kwargs)
     except Exception:
-        pass
-    return _original_connect(*args, **kwargs)
+        # "alias already exists" — return the existing connection.
+        from mongoengine.connection import _connections
+        return _connections.get(alias)
 
 
 mongoengine.connect = _mock_connect
+
+# Eagerly create the initial mongomock connection so that tests which
+# save data before calling deploy()/main() share the same database.
+_mock_connect("opalstack")
 
 # ---------------------------------------------------------------------------
 # 2. Set a fake OPALSTACK_TOKEN so that module-level guards in

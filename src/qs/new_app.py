@@ -14,8 +14,6 @@ from hu import ObjectDict as OD
 MANAGER_NAME = os.environ.get("QS_MANAGER_NAME", getpass.getuser())
 SERVER_NAME = os.environ.get("QS_SERVER_NAME", "opal5.opalstack.com")
 
-token = os.getenv('OPALSTACK_TOKEN')
-api = ops.Api(token=token)
 
 def create_app(a_mgr, name, manager_id):
     """
@@ -50,6 +48,10 @@ def build(argv):
         names = [argv[1]]
     else:
         sys.exit("Usage: new_app.py pam-name")
+    token = os.getenv('OPALSTACK_TOKEN')
+    if not token:
+        sys.exit("OPALSTACK_TOKEN not found in environment")
+    api = ops.Api(token=token)
     s_mgr = ops.api.ServersManager(api)
     u_mgr = ops.api.OSUsersManager(api)
     servers = s_mgr.list_all()
