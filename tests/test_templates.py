@@ -17,7 +17,7 @@ def jinja_env():
     )
 
 
-SAMPLE_VARS = dict(PROJECT="myapp", PORT_NO=9876, VERSION="1.0.0")
+SAMPLE_VARS = dict(PROJECT="myapp", PORT_NO=9876, VERSION="1.0.0", HOME_DIR="/home/testuser")
 
 
 # ------------------------------------------------------------------

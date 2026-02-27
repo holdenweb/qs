@@ -1,3 +1,4 @@
+import getpass
 import os
 import subprocess
 import sys
@@ -11,6 +12,10 @@ from jinja2 import Environment, PackageLoader
 
 import logging
 logging.basicConfig(level=logging.INFO)
+
+# Configuration via environment variables with sensible defaults.
+SSH_USER = os.environ.get("QS_SSH_USER", getpass.getuser())
+SSH_KEY = os.environ.get("QS_SSH_KEY", os.path.expanduser("~/.ssh/id_rsa"))
 
 # Establish mongoengine connection
 conn = connect('opalstack')
@@ -56,9 +61,9 @@ def deploy(app_name: str):
     # Create server connection
     c = Connection(
         host=server.hostname,
-        user="sholden",
+        user=SSH_USER,
         connect_kwargs={
-            "key_filename": "/Users/sholden/.ssh/id_rsa",
+            "key_filename": SSH_KEY,
         },
     )
 
@@ -77,7 +82,10 @@ def deploy(app_name: str):
     for filename in ('kill', 'start', 'stop', 'uwsgi.ini'):
         with open(filename, 'w') as f:
             tpl = jenv.get_template(filename)
-            content = tpl.render(PROJECT=app.name, PORT_NO=app.port, VERSION=version)
+            content = tpl.render(
+                PROJECT=app.name, PORT_NO=app.port, VERSION=version,
+                HOME_DIR=f"/home/{SSH_USER}",
+            )
             f.write(content)
     c.local(f'echo {version} > version.txt')
     create_wsgi(name=mod_name, port=app.port)

@@ -143,7 +143,13 @@ class TestDeployHappyPath:
             deploy("myapp")
 
             MockConn.assert_called_once()
-            assert MockConn.call_args.kwargs["host"] == "deploy.example.com"
+            call_kw = MockConn.call_args.kwargs
+            assert call_kw["host"] == "deploy.example.com"
+            # SSH user and key come from env vars (QS_SSH_USER / QS_SSH_KEY)
+            # with defaults of the current OS user and ~/.ssh/id_rsa
+            from qs import SSH_USER, SSH_KEY
+            assert call_kw["user"] == SSH_USER
+            assert call_kw["connect_kwargs"]["key_filename"] == SSH_KEY
 
     def test_creates_wsgi_with_module_name(self):
         self._setup_db()

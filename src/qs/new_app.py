@@ -1,6 +1,7 @@
 """
 newapp.py: Create a new app in your Opalstack account using its API.
 """
+import getpass
 import opalstack as ops
 import os
 import sys
@@ -9,8 +10,9 @@ from mongoengine import connect
 from qs.models import App
 from hu import ObjectDict as OD
 
-MANAGER_NAME = "sholden"
-SERVER_NAME = "opal5.opalstack.com"
+# Configuration via environment variables with sensible defaults.
+MANAGER_NAME = os.environ.get("QS_MANAGER_NAME", getpass.getuser())
+SERVER_NAME = os.environ.get("QS_SERVER_NAME", "opal5.opalstack.com")
 
 token = os.getenv('OPALSTACK_TOKEN')
 api = ops.Api(token=token)
@@ -54,7 +56,7 @@ def build(argv):
     server = next(s for s in servers["web_servers"] if s['hostname']==SERVER_NAME)
     server_id = server['id']
     manager = [u for u in u_mgr.list_all()
-                      if u['name']=='sholden' and u['server']==server['id']][0]
+                      if u['name']==MANAGER_NAME and u['server']==server['id']][0]
     manager = OD(manager)
     app_mgr = ops.api.AppsManager(api)
 
