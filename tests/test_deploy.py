@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch, call
 
 import pytest
 
-from qs import deploy, deploy_cli
+from qs.deploy import deploy, deploy_cli
 from qs.models import App, Server
 
 
@@ -31,7 +31,7 @@ class TestDeployCli:
 
     def test_passes_single_arg_to_deploy(self):
         with patch.object(sys, "argv", ["deploy", "myapp"]):
-            with patch("qs.deploy") as mock_deploy:
+            with patch("qs.deploy.deploy") as mock_deploy:
                 deploy_cli()
                 mock_deploy.assert_called_once_with("myapp")
 
@@ -96,7 +96,7 @@ class TestDeployVersionAgreement:
         Server(id=server_id, hostname="test.example.com").save()
 
         with patch("subprocess.run") as mock_run, \
-             patch("qs.Connection"):
+             patch("qs.deploy.Connection"):
             mock_run.side_effect = [
                 MagicMock(stdout="v1.0.0\n"),         # git tag
                 MagicMock(stdout="myapp 2.0.0\n"),    # uv version (mismatch!)
@@ -134,9 +134,9 @@ class TestDeployHappyPath:
     def test_connects_to_correct_server(self):
         self._setup_db()
         with patch("subprocess.run") as mock_run, \
-             patch("qs.Connection") as MockConn, \
-             patch("qs.Transfer"), \
-             patch("qs.create_wsgi"):
+             patch("qs.deploy.Connection") as MockConn, \
+             patch("qs.deploy.Transfer"), \
+             patch("qs.deploy.create_wsgi"):
             mock_run.side_effect = self._make_subprocess_side_effects()
             MockConn.return_value = MagicMock()
 
@@ -147,16 +147,16 @@ class TestDeployHappyPath:
             assert call_kw["host"] == "deploy.example.com"
             # SSH user and key come from env vars (QS_SSH_USER / QS_SSH_KEY)
             # with defaults of the current OS user and ~/.ssh/id_rsa
-            from qs import SSH_USER, SSH_KEY
+            from qs.deploy import SSH_USER, SSH_KEY
             assert call_kw["user"] == SSH_USER
             assert call_kw["connect_kwargs"]["key_filename"] == SSH_KEY
 
     def test_creates_wsgi_with_module_name(self):
         self._setup_db()
         with patch("subprocess.run") as mock_run, \
-             patch("qs.Connection"), \
-             patch("qs.Transfer"), \
-             patch("qs.create_wsgi") as mock_wsgi:
+             patch("qs.deploy.Connection"), \
+             patch("qs.deploy.Transfer"), \
+             patch("qs.deploy.create_wsgi") as mock_wsgi:
             mock_run.side_effect = self._make_subprocess_side_effects()
 
             deploy("myapp")
@@ -170,9 +170,9 @@ class TestDeployHappyPath:
         Server(id=server_id, hostname="deploy.example.com").save()
 
         with patch("subprocess.run") as mock_run, \
-             patch("qs.Connection"), \
-             patch("qs.Transfer"), \
-             patch("qs.create_wsgi") as mock_wsgi:
+             patch("qs.deploy.Connection"), \
+             patch("qs.deploy.Transfer"), \
+             patch("qs.deploy.create_wsgi") as mock_wsgi:
             mock_run.side_effect = [
                 MagicMock(stdout="v1.0.0\n"),
                 MagicMock(stdout="my-app 1.0.0\n"),
@@ -185,9 +185,9 @@ class TestDeployHappyPath:
     def test_uploads_tarball(self):
         self._setup_db()
         with patch("subprocess.run") as mock_run, \
-             patch("qs.Connection") as MockConn, \
-             patch("qs.Transfer") as MockTransfer, \
-             patch("qs.create_wsgi"):
+             patch("qs.deploy.Connection") as MockConn, \
+             patch("qs.deploy.Transfer") as MockTransfer, \
+             patch("qs.deploy.create_wsgi"):
             mock_run.side_effect = self._make_subprocess_side_effects()
             mock_conn = MagicMock()
             MockConn.return_value = mock_conn
@@ -204,9 +204,9 @@ class TestDeployHappyPath:
     def test_runs_remote_deployment_commands(self):
         self._setup_db()
         with patch("subprocess.run") as mock_run, \
-             patch("qs.Connection") as MockConn, \
-             patch("qs.Transfer"), \
-             patch("qs.create_wsgi"):
+             patch("qs.deploy.Connection") as MockConn, \
+             patch("qs.deploy.Transfer"), \
+             patch("qs.deploy.create_wsgi"):
             mock_run.side_effect = self._make_subprocess_side_effects()
             mock_conn = MagicMock()
             MockConn.return_value = mock_conn
@@ -222,9 +222,9 @@ class TestDeployHappyPath:
     def test_renders_all_four_template_files(self):
         self._setup_db()
         with patch("subprocess.run") as mock_run, \
-             patch("qs.Connection"), \
-             patch("qs.Transfer"), \
-             patch("qs.create_wsgi"):
+             patch("qs.deploy.Connection"), \
+             patch("qs.deploy.Transfer"), \
+             patch("qs.deploy.create_wsgi"):
             mock_run.side_effect = self._make_subprocess_side_effects()
 
             deploy("myapp")

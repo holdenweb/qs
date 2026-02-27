@@ -37,8 +37,8 @@ bson.BSON.encode = _patched_bson_encode
 # ---------------------------------------------------------------------------
 # 1. Patch mongoengine.connect BEFORE any qs module is imported.
 #
-#    qs/__init__.py:18 runs ``conn = connect('opalstack')`` at import time.
-#    qs/opalsync.py:47 and qs/new_app.py:61 also call connect().
+#    qs/deploy.py calls ``connect('opalstack')`` inside deploy().
+#    qs/opalsync.py and qs/new_app.py also call connect().
 #    By replacing the function here we guarantee every call goes through
 #    mongomock regardless of import order.
 # ---------------------------------------------------------------------------
