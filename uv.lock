@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.12"
 
 [[package]]
@@ -489,7 +489,7 @@ wheels = [
 
 [[package]]
 name = "qs"
-version = "0.4.4b4"
+version = "0.4.4b5"
 source = { editable = "." }
 dependencies = [
     { name = "fabric" },

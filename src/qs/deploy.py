@@ -27,7 +27,8 @@ def deploy(app_name: str):
     """
     Identify the tag for the current commit and deploy it to the server.
 
-    At present this is relatively easy because we are only using one server.
+    This was relatively easy when only using one server, but now we need to
+    deal with multiple servers.
     """
     connect('opalstack')
 
@@ -109,13 +110,13 @@ def deploy(app_name: str):
     Transfer(c).put(f'{proj_name}-{version}.tgz', f'apps/{app.name}/dist/{proj_name}-{version}.tgz')
 
     # Now install it server-side!
-    # f"ensconce {app.name} {proj_name} {version}"
     with c.cd(f"apps/{app.name}"):
         remote(f"tar xvf dist/{proj_name}-{version}.tgz")
         remote("chmod +x start stop kill")
         remote("uv sync")
-        remote(f"if [ -e ~/envs/{proj_name} ] ; then cp ~/envs/{proj_name} .env ; "
-               "else echo 'No env file' ; fi")
+        remote(f"if [ -e ~/envs/{proj_name} ] ; then "
+               f"(cp ~/envs/{proj_name} .env && echo >&2 'Env file for project {proj_name} copied'); "
+               f"else echo >&2 'No env file for project {proj_name}' ; fi")
         remote("./start")
 
 
