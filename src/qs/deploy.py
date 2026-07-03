@@ -172,7 +172,7 @@ def deploy(app_name: str):
             "key_filename": SSH_KEY,
         },
     )
-    print(f"qs{__version__} delivering {app_name} v{version}")
+    print(f"qs{__version__} delivering {app_name} v{version} to server {server.hostname}")
 
     # Render and bundle everything under a throwaway build directory so the
     # project root is never polluted with generated deployment files.
