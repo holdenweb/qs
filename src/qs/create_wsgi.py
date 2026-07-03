@@ -6,8 +6,8 @@ from {name} import app, application
 if __name__ == '__main__':
     app.run(port = {port}, debug = True)
 """
-def create_wsgi(name, port=2400):
-    with open("wsgi.py", 'w') as f:
+def create_wsgi(name, port=2400, path="wsgi.py"):
+    with open(path, 'w') as f:
         f.write(
             WSGIPY_TEMPLATE.format(
                 name=name,

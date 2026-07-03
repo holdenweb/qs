@@ -7,5 +7,4 @@ install:
 
 clean:
     find . -name __pycache__ -exec rm -rf {} \; -prune
-    rm -f kill start stop uwsgi.ini
 

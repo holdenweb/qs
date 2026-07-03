@@ -10,7 +10,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from qs.deploy import deploy, deploy_cli
+from qs.deploy import (
+    _build_tarball,
+    _git_version,
+    _project_names,
+    _render_build_files,
+    deploy,
+    deploy_cli,
+)
 from qs.models import App, Server
 
 
@@ -200,7 +207,10 @@ class TestDeployHappyPath:
 
             deploy("myapp")
 
-            mock_wsgi.assert_called_once_with(name="myapp", port=8080)
+            mock_wsgi.assert_called_once()
+            kwargs = mock_wsgi.call_args.kwargs
+            assert kwargs["name"] == "myapp"
+            assert kwargs["port"] == 8080
 
     def test_hyphenated_project_converts_to_underscore_for_module(self):
         """Project 'my-app' should produce module name 'my_app'."""
@@ -219,7 +229,10 @@ class TestDeployHappyPath:
 
             deploy("my-app")
 
-            mock_wsgi.assert_called_once_with(name="my_app", port=9090)
+            mock_wsgi.assert_called_once()
+            kwargs = mock_wsgi.call_args.kwargs
+            assert kwargs["name"] == "my_app"
+            assert kwargs["port"] == 9090
 
     def test_uploads_tarball(self):
         self._setup_db()
@@ -235,10 +248,11 @@ class TestDeployHappyPath:
 
             deploy("myapp")
 
-            mock_transfer.put.assert_called_once_with(
-                "myapp-1.0.0.tgz",
-                "apps/myapp/dist/myapp-1.0.0.tgz",
-            )
+            mock_transfer.put.assert_called_once()
+            local_path, remote_path = mock_transfer.put.call_args.args
+            # The tarball is built in a temp dir; only its name is fixed.
+            assert local_path.endswith("myapp-1.0.0.tgz")
+            assert remote_path == "apps/myapp/dist/myapp-1.0.0.tgz"
 
     def test_runs_remote_deployment_commands(self):
         self._setup_db()
@@ -258,7 +272,8 @@ class TestDeployHappyPath:
             assert any("uv sync" in c for c in remote_cmds)
             assert any("start" in c for c in remote_cmds)
 
-    def test_renders_all_four_template_files(self):
+    def test_does_not_pollute_working_directory(self):
+        """Generated files must land in a temp build dir, never the cwd."""
         self._setup_db()
         with patch("subprocess.run") as mock_run, \
              patch("qs.deploy.Connection"), \
@@ -268,5 +283,65 @@ class TestDeployHappyPath:
 
             deploy("myapp")
 
-        written = {f.name for f in self.tmp.iterdir()}
-        assert {"kill", "start", "stop", "uwsgi.ini"}.issubset(written)
+        leftovers = {f.name for f in self.tmp.iterdir()}
+        assert not ({"kill", "start", "stop", "uwsgi.ini", "wsgi.py",
+                     "version.txt"} & leftovers)
+
+
+# ------------------------------------------------------------------
+# Extracted helpers — unit tested directly
+# ------------------------------------------------------------------
+class TestGitVersion:
+
+    def test_strips_leading_v(self):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(stdout="v1.2.3\n")
+            assert _git_version() == "1.2.3"
+
+    def test_exits_when_no_tag(self):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(stdout="\n")
+            with pytest.raises(SystemExit, match="Unable to find any tag"):
+                _git_version()
+
+
+class TestProjectNames:
+
+    def test_returns_project_and_module_names(self):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(stdout="my-app 1.0.0\n")
+            assert _project_names("1.0.0") == ("my-app", "my_app")
+
+    def test_exits_on_version_mismatch(self):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(stdout="my-app 2.0.0\n")
+            with pytest.raises(SystemExit, match="disagree on version"):
+                _project_names("1.0.0")
+
+
+class TestRenderBuildFiles:
+
+    def test_renders_scripts_and_wsgi_into_build_dir(self, tmp_path):
+        app = App(id=uuid.uuid4(), name="myapp", port=8080, server=uuid.uuid4())
+        _render_build_files(tmp_path, app, "1.0.0", "myapp")
+
+        for name in ("kill", "start", "stop", "uwsgi.ini", "wsgi.py"):
+            assert (tmp_path / name).exists()
+        # The uwsgi config must carry the app's port.
+        assert "8080" in (tmp_path / "uwsgi.ini").read_text()
+        # wsgi.py imports from the module name.
+        assert "from myapp import" in (tmp_path / "wsgi.py").read_text()
+
+
+class TestBuildTarball:
+
+    def test_bundles_generated_and_project_files(self, tmp_path):
+        c = MagicMock()
+        tarball = _build_tarball(c, tmp_path, "myapp", "1.0.0")
+
+        assert str(tarball).endswith("myapp-1.0.0.tgz")
+        cmd = c.local.call_args.args[0]
+        # Generated files are pulled from the build dir, project files from cwd.
+        assert f"-C {tmp_path}" in cmd
+        assert "wsgi.py" in cmd and "uwsgi.ini" in cmd
+        assert "src" in cmd and "pyproject.toml" in cmd
