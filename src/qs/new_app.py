@@ -2,13 +2,14 @@
 newapp.py: Create a new app in your Opalstack account using its API.
 """
 import getpass
-import opalstack as ops
 import os
 import sys
 
-from mongoengine import connect
-from qs.models import App
+import opalstack as ops
 from hu import ObjectDict as OD
+from mongoengine import connect
+
+from qs.models import App
 
 # Configuration via environment variables with sensible defaults.
 MANAGER_NAME = os.environ.get("QS_MANAGER_NAME", getpass.getuser())
@@ -56,13 +57,12 @@ def build(argv):
     u_mgr = ops.api.OSUsersManager(api)
     servers = s_mgr.list_all()
     server = next(s for s in servers["web_servers"] if s['hostname']==SERVER_NAME)
-    server_id = server['id']
     manager = [u for u in u_mgr.list_all()
                       if u['name']==MANAGER_NAME and u['server']==server['id']][0]
     manager = OD(manager)
     app_mgr = ops.api.AppsManager(api)
 
-    conn = connect(db='opalstack')
+    connect(db='opalstack')
     for name in names:
         app = create_app(app_mgr, name, manager.id)
         print("Created on port", app.port, file=sys.stderr)

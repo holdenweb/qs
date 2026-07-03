@@ -2,6 +2,7 @@
 deploy.py: Build and deploy a versioned application to Opalstack.
 """
 import getpass
+import logging
 import os
 import subprocess
 import sys
@@ -11,11 +12,10 @@ from fabric.transfer import Transfer
 from jinja2 import Environment, PackageLoader
 from mongoengine import connect
 
-from .models import App, Server
 from .create_wsgi import create_wsgi
+from .models import App, Server
 from .version import __version__
 
-import logging
 logging.basicConfig(level=logging.INFO)
 
 # Configuration via environment variables with sensible defaults.
@@ -31,10 +31,6 @@ def deploy(app_name: str):
     deal with multiple servers.
     """
     connect('opalstack')
-
-    def remote(cmd):
-        "Run a single remote command."
-        return c.run(cmd)
 
     #
     # Locate the tag for the current commit - this can
@@ -70,9 +66,14 @@ def deploy(app_name: str):
         },
     )
 
+    def remote(cmd):
+        "Run a single remote command."
+        return c.run(cmd)
+
     # Establish project and module names
     proj_name, v = subprocess.run(["uv", "version"], capture_output=True, text=True).stdout.split()
-    assert v == version, "`uv version` and `git tag` disagree on version"
+    if v != version:
+        sys.exit(f"`uv version` ({v}) and `git tag` ({version}) disagree on version")
     mod_name = proj_name.replace("-", "_")
     print(f"qs{__version__} delivering {app_name} v{version}")
 
@@ -90,7 +91,8 @@ def deploy(app_name: str):
                 HOME_DIR=f"/home/{SSH_USER}",
             )
             f.write(content)
-    c.local(f'echo {version} > version.txt')
+    with open('version.txt', 'w') as f:
+        f.write(f"{version}\n")
     create_wsgi(name=mod_name, port=app.port)
 
     # Create a distribution to send up the wire to the server.
@@ -99,23 +101,32 @@ def deploy(app_name: str):
            './kill ./stop ./start ./uwsgi.ini ./wsgi.py ./src ./pyproject.toml ./README.md)')
     c.local(cmd)
 
+    # Confirm the target directory exists before running anything
+    # destructive in it: a missing or renamed app dir must abort loudly
+    # rather than letting `rm -rf` run in an unexpected working directory.
+    app_dir = f"apps/{app.name}"
+    if not c.run(f"test -d {app_dir}", warn=True).ok:
+        sys.exit(f"Remote app directory {app_dir!r} not found on {server.hostname}: "
+                 "cannot deploy.")
+
     # Stop and wipe any existing app, wipe and reinstall.
     # XXX Note that these should really be app-specfic.
     #     Back when the app saved its own versions things
     #     were different! Unlikely to hurt in the meantime.
-    with c.cd(f"apps/{app.name}"):
+    with c.cd(app_dir):
         remote("if [ -e stop ] ; then ./stop || echo 'No stop file' ; fi")
         remote("rm -rf .venv *")
         remote("mkdir -p dist tmp")
-    Transfer(c).put(f'{proj_name}-{version}.tgz', f'apps/{app.name}/dist/{proj_name}-{version}.tgz')
+    Transfer(c).put(f'{proj_name}-{version}.tgz', f'{app_dir}/dist/{proj_name}-{version}.tgz')
 
     # Now install it server-side!
-    with c.cd(f"apps/{app.name}"):
+    with c.cd(app_dir):
         remote(f"tar xvf dist/{proj_name}-{version}.tgz")
         remote("chmod +x start stop kill")
         remote("uv sync")
         remote(f"if [ -e ~/envs/{proj_name} ] ; then "
-               f"(cp ~/envs/{proj_name} .env && echo >&2 'Env file for project {proj_name} copied'); "
+               f"(cp ~/envs/{proj_name} .env && "
+               f"echo >&2 'Env file for project {proj_name} copied'); "
                f"else echo >&2 'No env file for project {proj_name}' ; fi")
         remote("./start")
 

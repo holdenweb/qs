@@ -4,13 +4,14 @@ sync.py: Download the Opalstack state.
 import os
 import sys
 
-from mongoengine import connect
-from qs.models import class_for
 import opalstack as ostack
+from mongoengine import connect
 
-object_type_names = ['Accounts', 'Addresses', 'Apps', 'Certs', 'Dnsrecords', 'Domains', 'Ips', 'Mailusers',
-                'Mariadbs', 'Mariausers', 'Notices', 'OSUsers', 'OSVars', 'Psqldbs', 'Psqlusers',
-                'Quarantinedmails', 'Servers', 'Sites', 'Tokens']
+from qs.models import TYPE_NAMES, class_for
+
+# Derived from qs.models.CLASS_MAP so the sync list can never drift from
+# the set of known document types.
+object_type_names = TYPE_NAMES
 
 def server_transfer(mgr, type_name):
     class_for(type_name).drop_collection()

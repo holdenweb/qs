@@ -5,11 +5,26 @@ import pytest
 from mongoengine.errors import NotUniqueError
 
 from qs.models import (
+    Account,
+    Address,
+    App,
+    Cert,
+    Dnsrecord,
+    Domain,
+    Ip,
+    Mailuser,
+    Mariadb,
+    Mariauser,
+    Notice,
+    OSUser,
+    OSVar,
+    Psqldb,
+    Psqluser,
+    Quarantinedmail,
+    Server,
+    Site,
+    Token,
     class_for,
-    Account, Address, App, Cert, Dnsrecord, Domain,
-    Ip, Mailuser, Mariadb, Mariauser, Notice,
-    OSUser, OSVar, Psqldb, Psqluser, Quarantinedmail,
-    Server, Site, Token,
 )
 
 

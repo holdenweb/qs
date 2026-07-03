@@ -7,14 +7,13 @@ We exploit this to redirect mongoengine.connect through mongomock so that
 no real MongoDB instance is required for testing.
 """
 import os
-import uuid
 
 import bson
+import mongoengine
+import mongomock
+import pytest
 from bson.binary import UuidRepresentation
 from bson.codec_options import CodecOptions
-import mongomock
-import mongoengine
-import pytest
 
 # ---------------------------------------------------------------------------
 # 0. Fix pymongo 4.x / mongomock UUID compatibility.
@@ -79,22 +78,14 @@ os.environ.setdefault("OPALSTACK_TOKEN", "test-token-for-testing")
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
-ALL_TYPE_NAMES = [
-    "Accounts", "Addresses", "Apps", "Certs", "Dnsrecords",
-    "Domains", "Ips", "Mailusers", "Mariadbs", "Mariausers",
-    "Notices", "OSUsers", "OSVars", "Psqldbs", "Psqlusers",
-    "Quarantinedmails", "Servers", "Sites", "Tokens",
-]
-
-
 @pytest.fixture(autouse=True)
 def _clean_db():
     """Drop every collection after each test for isolation."""
     yield
-    from qs.models import class_for
+    from qs.models import CLASS_MAP
 
-    for name in ALL_TYPE_NAMES:
+    for cls in CLASS_MAP.values():
         try:
-            class_for(name).drop_collection()
+            cls.drop_collection()
         except Exception:
             pass

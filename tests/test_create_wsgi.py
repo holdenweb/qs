@@ -1,7 +1,6 @@
 """Tests for qs.create_wsgi — WSGI entry-point file generation."""
-import pytest
 
-from qs.create_wsgi import create_wsgi, WSGIPY_TEMPLATE
+from qs.create_wsgi import WSGIPY_TEMPLATE, create_wsgi
 
 
 class TestCreateWsgi:

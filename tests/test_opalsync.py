@@ -2,14 +2,12 @@
 import uuid
 from unittest.mock import MagicMock
 
-import pytest
-
 from qs.models import App, Server, class_for
 from qs.opalsync import (
     generic_transfer,
+    object_type_names,
     server_transfer,
     specials,
-    object_type_names,
 )
 
 

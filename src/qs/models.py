@@ -1,7 +1,15 @@
 from mongoengine import (
-    Document, DynamicDocument, DictField, ListField, StringField,
-    IntField, BooleanField, UUIDField, URLField
+    BooleanField,
+    DictField,
+    Document,
+    DynamicDocument,
+    IntField,
+    ListField,
+    StringField,
+    URLField,
+    UUIDField,
 )
+
 
 class App(Document):
     id = UUIDField(primary_key=True)
@@ -111,25 +119,34 @@ class Token(DynamicDocument):
     key = StringField()
 
 
+# Single source of truth mapping Opalstack resource type names to their
+# document classes. Both class_for() and the list of type names iterated
+# by opalsync are derived from this, so they can never drift apart.
+CLASS_MAP = {
+    "Accounts": Account,
+    "Addresses": Address,
+    "Apps": App,
+    "Certs": Cert,
+    "Dnsrecords": Dnsrecord,
+    "Domains": Domain,
+    "Ips": Ip,
+    "Mailusers": Mailuser,
+    "Mariadbs": Mariadb,
+    "Mariausers": Mariauser,
+    "Notices": Notice,
+    "OSUsers": OSUser,
+    "OSVars": OSVar,
+    "Psqldbs": Psqldb,
+    "Psqlusers": Psqluser,
+    "Quarantinedmails": Quarantinedmail,
+    "Servers": Server,
+    "Sites": Site,
+    "Tokens": Token,
+}
+
+# Type names in a stable order (dicts preserve insertion order).
+TYPE_NAMES = tuple(CLASS_MAP)
+
+
 def class_for(name):
-    return {
-        "Accounts": Account,
-        "Addresses": Address,
-        "Apps": App,
-        "Certs": Cert,
-        "Dnsrecords": Dnsrecord,
-        "Domains": Domain,
-        "Ips": Ip,
-        "Mailusers": Mailuser,
-        "Mariadbs": Mariadb,
-        "Mariausers": Mariauser,
-        "Notices": Notice,
-        "OSUsers": OSUser,
-        "OSVars": OSVar,
-        "Psqldbs": Psqldb,
-        "Psqlusers": Psqluser,
-        "Quarantinedmails": Quarantinedmail,
-        "Servers": Server,
-        "Sites": Site,
-        "Tokens": Token,
-    }[name]
+    return CLASS_MAP[name]

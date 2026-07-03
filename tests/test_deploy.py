@@ -6,7 +6,7 @@ verify the orchestration logic.
 """
 import sys
 import uuid
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -90,7 +90,7 @@ class TestDeployAppLookup:
 # ------------------------------------------------------------------
 class TestDeployVersionAgreement:
 
-    def test_asserts_when_uv_and_git_disagree(self):
+    def test_exits_when_uv_and_git_disagree(self):
         server_id = uuid.uuid4()
         App(id=uuid.uuid4(), name="myapp", port=8080, server=server_id).save()
         Server(id=server_id, hostname="test.example.com").save()
@@ -101,8 +101,47 @@ class TestDeployVersionAgreement:
                 MagicMock(stdout="v1.0.0\n"),         # git tag
                 MagicMock(stdout="myapp 2.0.0\n"),    # uv version (mismatch!)
             ]
-            with pytest.raises(AssertionError):
+            with pytest.raises(SystemExit, match="disagree on version"):
                 deploy("myapp")
+
+
+# ------------------------------------------------------------------
+# deploy() — guards the destructive remote wipe
+# ------------------------------------------------------------------
+class TestDeployRemoteDirGuard:
+
+    @pytest.fixture(autouse=True)
+    def _workdir(self, tmp_path, monkeypatch):
+        """Run in a temp dir so the local template files deploy() writes
+        before the guard check don't land in the project root."""
+        monkeypatch.chdir(tmp_path)
+
+    def test_exits_when_remote_app_dir_missing(self):
+        """If the target apps/<name> dir is absent, deploy must abort
+        before running the destructive `rm -rf` block."""
+        server_id = uuid.uuid4()
+        App(id=uuid.uuid4(), name="myapp", port=8080, server=server_id).save()
+        Server(id=server_id, hostname="deploy.example.com").save()
+
+        with patch("subprocess.run") as mock_run, \
+             patch("qs.deploy.Connection") as MockConn, \
+             patch("qs.deploy.Transfer"), \
+             patch("qs.deploy.create_wsgi"):
+            mock_run.side_effect = [
+                MagicMock(stdout="v1.0.0\n"),
+                MagicMock(stdout="myapp 1.0.0\n"),
+            ]
+            mock_conn = MagicMock()
+            MockConn.return_value = mock_conn
+            # `test -d apps/myapp` reports failure (dir does not exist).
+            mock_conn.run.return_value.ok = False
+
+            with pytest.raises(SystemExit, match="not found"):
+                deploy("myapp")
+
+            # The destructive wipe must never have been attempted.
+            remote_cmds = [str(c) for c in mock_conn.run.call_args_list]
+            assert not any("rm -rf" in c for c in remote_cmds)
 
 
 # ------------------------------------------------------------------
@@ -147,7 +186,7 @@ class TestDeployHappyPath:
             assert call_kw["host"] == "deploy.example.com"
             # SSH user and key come from env vars (QS_SSH_USER / QS_SSH_KEY)
             # with defaults of the current OS user and ~/.ssh/id_rsa
-            from qs.deploy import SSH_USER, SSH_KEY
+            from qs.deploy import SSH_KEY, SSH_USER
             assert call_kw["user"] == SSH_USER
             assert call_kw["connect_kwargs"]["key_filename"] == SSH_KEY
 
