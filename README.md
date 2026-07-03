@@ -27,13 +27,19 @@ builds and installs a wheel via `just install` if you prefer.)
 
 Set via environment variables:
 
-| Variable           | Used by            | Default                | Purpose                                   |
-| ------------------ | ------------------ | ---------------------- | ----------------------------------------- |
-| `OPALSTACK_TOKEN`  | `opalsync`, `new_app` | *(required)*        | Opalstack API token                       |
-| `QS_SSH_USER`      | `deploy`           | current OS user        | SSH login used to reach the server        |
-| `QS_SSH_KEY`       | `deploy`           | `~/.ssh/id_rsa`        | SSH private key file                      |
-| `QS_MANAGER_NAME`  | `new_app`          | current OS user        | Opalstack OS user that owns the new app   |
-| `QS_SERVER_NAME`   | `new_app`          | `opal5.opalstack.com`  | Web server to create the app on           |
+| Variable            | Used by            | Default                | Purpose                                   |
+| ------------------- | ------------------ | ---------------------- | ----------------------------------------- |
+| `OPALSTACK_TOKEN`   | `opalsync`, `new_app` | *(required)*        | Opalstack API token                       |
+| `QS_SSH_USER`       | `deploy`           | current OS user        | SSH login used to reach the server        |
+| `QS_SSH_KEY`        | `deploy`           | *(agent / ssh-config)* | Pin a specific private key file; when unset, your SSH agent and `~/.ssh/config` are used |
+| `QS_SSH_PASSPHRASE` | `deploy`           | *(none)*               | Passphrase for `QS_SSH_KEY`, if that key is encrypted |
+| `QS_MANAGER_NAME`   | `new_app`          | current OS user        | Opalstack OS user that owns the new app   |
+| `QS_SERVER_NAME`    | `new_app`          | `opal5.opalstack.com`  | Web server to create the app on           |
+
+> **SSH auth:** by default `deploy` authenticates the same way `ssh` does —
+> through your SSH agent and `~/.ssh/config`. If your key is passphrase-encrypted,
+> make sure it's loaded (`ssh-add`). Only set `QS_SSH_KEY` if you need to force a
+> particular key file.
 
 ## Commands
 

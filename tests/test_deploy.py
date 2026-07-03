@@ -12,6 +12,7 @@ import pytest
 
 from qs.deploy import (
     _build_tarball,
+    _connect_kwargs,
     _git_version,
     _project_names,
     _render_build_files,
@@ -191,11 +192,13 @@ class TestDeployHappyPath:
             MockConn.assert_called_once()
             call_kw = MockConn.call_args.kwargs
             assert call_kw["host"] == "deploy.example.com"
-            # SSH user and key come from env vars (QS_SSH_USER / QS_SSH_KEY)
-            # with defaults of the current OS user and ~/.ssh/id_rsa
-            from qs.deploy import SSH_KEY, SSH_USER
+            # SSH user comes from QS_SSH_USER, defaulting to the OS user.
+            from qs.deploy import SSH_USER
             assert call_kw["user"] == SSH_USER
-            assert call_kw["connect_kwargs"]["key_filename"] == SSH_KEY
+            # With no QS_SSH_KEY set, we must NOT pin a key file — that lets
+            # paramiko use the ssh-agent / ~/.ssh/config instead of crashing
+            # on an encrypted default key.
+            assert "key_filename" not in call_kw["connect_kwargs"]
 
     def test_creates_wsgi_with_module_name(self):
         self._setup_db()
@@ -331,6 +334,31 @@ class TestRenderBuildFiles:
         assert "8080" in (tmp_path / "uwsgi.ini").read_text()
         # wsgi.py imports from the module name.
         assert "from myapp import" in (tmp_path / "wsgi.py").read_text()
+
+
+class TestConnectKwargs:
+
+    def test_empty_when_no_key_configured(self):
+        """No QS_SSH_KEY → no key_filename, so the agent/ssh-config is used."""
+        with patch("qs.deploy.SSH_KEY", None), \
+             patch("qs.deploy.SSH_PASSPHRASE", None):
+            assert _connect_kwargs() == {}
+
+    def test_pins_key_when_configured(self):
+        with patch("qs.deploy.SSH_KEY", "~/.ssh/deploy_key"), \
+             patch("qs.deploy.SSH_PASSPHRASE", None):
+            kwargs = _connect_kwargs()
+            assert kwargs["key_filename"].endswith("/.ssh/deploy_key")
+            assert "passphrase" not in kwargs
+
+    def test_includes_passphrase_only_with_key(self):
+        with patch("qs.deploy.SSH_KEY", "~/.ssh/deploy_key"), \
+             patch("qs.deploy.SSH_PASSPHRASE", "s3cret"):
+            assert _connect_kwargs()["passphrase"] == "s3cret"
+        # A passphrase without a key file is meaningless and must be ignored.
+        with patch("qs.deploy.SSH_KEY", None), \
+             patch("qs.deploy.SSH_PASSPHRASE", "s3cret"):
+            assert _connect_kwargs() == {}
 
 
 class TestBuildTarball:

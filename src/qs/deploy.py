@@ -22,7 +22,27 @@ logging.basicConfig(level=logging.INFO)
 
 # Configuration via environment variables with sensible defaults.
 SSH_USER = os.environ.get("QS_SSH_USER", getpass.getuser())
-SSH_KEY = os.environ.get("QS_SSH_KEY", os.path.expanduser("~/.ssh/id_rsa"))
+# An explicit private key file is *optional*. When unset we let paramiko use
+# the SSH agent and ~/.ssh/config, exactly as a plain `ssh` invocation would.
+# Forcing key_filename at a passphrase-encrypted key makes paramiko raise
+# PasswordRequiredException instead of falling back to the agent, so we only
+# pass it when the user explicitly asks for a specific key.
+SSH_KEY = os.environ.get("QS_SSH_KEY")
+SSH_PASSPHRASE = os.environ.get("QS_SSH_PASSPHRASE")
+
+
+def _connect_kwargs() -> dict:
+    """Build paramiko connect_kwargs, preferring the agent/ssh-config.
+
+    Only pin a key file (and optional passphrase) when QS_SSH_KEY is set;
+    otherwise return an empty dict so the agent and ~/.ssh/config are used.
+    """
+    kwargs: dict = {}
+    if SSH_KEY:
+        kwargs["key_filename"] = os.path.expanduser(SSH_KEY)
+        if SSH_PASSPHRASE:
+            kwargs["passphrase"] = SSH_PASSPHRASE
+    return kwargs
 
 # Scripts rendered locally from templates and shipped to the server.
 RENDERED_TEMPLATES = ("kill", "start", "stop", "uwsgi.ini")
@@ -168,9 +188,7 @@ def deploy(app_name: str):
     c = Connection(
         host=server.hostname,
         user=SSH_USER,
-        connect_kwargs={
-            "key_filename": SSH_KEY,
-        },
+        connect_kwargs=_connect_kwargs(),
     )
     print(f"qs{__version__} delivering {app_name} v{version} to server {server.hostname}")
 
