@@ -30,7 +30,7 @@ Set via environment variables:
 | Variable            | Used by            | Default                | Purpose                                   |
 | ------------------- | ------------------ | ---------------------- | ----------------------------------------- |
 | `OPALSTACK_TOKEN`   | `opalsync`, `new_app` | *(required)*        | Opalstack API token                       |
-| `QS_SSH_USER`       | `deploy`           | current OS user        | SSH login used to reach the server        |
+| `QS_SSH_USER`       | `deploy`           | *(ssh-config / OS user)* | SSH login for the server; when unset, `~/.ssh/config` decides (falling back to your OS user) |
 | `QS_SSH_KEY`        | `deploy`           | *(agent / ssh-config)* | Pin a specific private key file; when unset, your SSH agent and `~/.ssh/config` are used |
 | `QS_SSH_PASSPHRASE` | `deploy`           | *(none)*               | Passphrase for `QS_SSH_KEY`, if that key is encrypted |
 | `QS_MANAGER_NAME`   | `new_app`          | current OS user        | Opalstack OS user that owns the new app   |

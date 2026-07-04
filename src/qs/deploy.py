@@ -1,7 +1,6 @@
 """
 deploy.py: Build and deploy a versioned application to Opalstack.
 """
-import getpass
 import logging
 import os
 import subprocess
@@ -21,7 +20,10 @@ from .version import __version__
 logging.basicConfig(level=logging.INFO)
 
 # Configuration via environment variables with sensible defaults.
-SSH_USER = os.environ.get("QS_SSH_USER", getpass.getuser())
+# When QS_SSH_USER is unset we pass user=None so paramiko honours ~/.ssh/config
+# (falling back to the local username), rather than forcing the local username
+# and silently ignoring an ssh-config `User` directive.
+SSH_USER = os.environ.get("QS_SSH_USER")
 # An explicit private key file is *optional*. When unset we let paramiko use
 # the SSH agent and ~/.ssh/config, exactly as a plain `ssh` invocation would.
 # Forcing key_filename at a passphrase-encrypted key makes paramiko raise
@@ -55,14 +57,21 @@ PROJECT_FILES = ("src", "pyproject.toml", "README.md")
 def _git_version() -> str:
     """Return the release tag on HEAD with its leading ``v`` stripped.
 
-    Exits if HEAD carries no tag. (This can misbehave when a commit has
-    several tags, since their outputs are concatenated.)
+    Exits if HEAD carries no tag, or if it carries more than one (in which
+    case we can't tell which version is meant).
     """
     result = subprocess.run(
         ["git", "tag", "--points-at", "HEAD"],
         capture_output=True, text=True,
     )
-    version = result.stdout.strip()[1:]
+    tags = result.stdout.split()
+    if not tags:
+        sys.exit("Unable to find any tag for current commit")
+    if len(tags) > 1:
+        sys.exit(f"HEAD has multiple tags ({', '.join(tags)}); "
+                 "tag the commit with a single version to deploy it")
+    tag = tags[0]
+    version = tag[1:] if tag.startswith("v") else tag
     if not version:
         sys.exit("Unable to find any tag for current commit")
     return version
@@ -102,13 +111,14 @@ def _project_names(version: str) -> tuple[str, str]:
     return proj_name, proj_name.replace("-", "_")
 
 
-def _render_build_files(build_dir: Path, app: App, version: str, mod_name: str) -> None:
+def _render_build_files(build_dir: Path, app: App, version: str,
+                        mod_name: str, home_dir: str) -> None:
     """Render the start/stop/kill/uwsgi scripts and wsgi.py into build_dir."""
     jenv = Environment(loader=PackageLoader("qs", "templates"), autoescape=False)
     for filename in RENDERED_TEMPLATES:
         content = jenv.get_template(filename).render(
             PROJECT=app.name, PORT_NO=app.port, VERSION=version,
-            HOME_DIR=f"/home/{SSH_USER}",
+            HOME_DIR=home_dir,
         )
         (build_dir / filename).write_text(content)
     create_wsgi(name=mod_name, port=app.port, path=build_dir / "wsgi.py")
@@ -192,11 +202,15 @@ def deploy(app_name: str):
     )
     print(f"qs{__version__} delivering {app_name} v{version} to server {server.hostname}")
 
+    # Ask the server for the real home directory rather than assuming
+    # /home/<user>; the deployment scripts are rendered with paths under it.
+    home_dir = c.run("echo $HOME", hide=True).stdout.strip()
+
     # Render and bundle everything under a throwaway build directory so the
     # project root is never polluted with generated deployment files.
     with tempfile.TemporaryDirectory() as tmp:
         build_dir = Path(tmp)
-        _render_build_files(build_dir, app, version, mod_name)
+        _render_build_files(build_dir, app, version, mod_name, home_dir)
         tarball = _build_tarball(c, build_dir, proj_name, version)
         _install_remote(c, app, server, proj_name, version, tarball)
 

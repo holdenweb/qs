@@ -307,6 +307,23 @@ class TestGitVersion:
             with pytest.raises(SystemExit, match="Unable to find any tag"):
                 _git_version()
 
+    def test_exits_when_bare_v_tag(self):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(stdout="v\n")
+            with pytest.raises(SystemExit, match="Unable to find any tag"):
+                _git_version()
+
+    def test_exits_when_multiple_tags(self):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(stdout="v1.0.0\nv2.0.0\n")
+            with pytest.raises(SystemExit, match="multiple tags"):
+                _git_version()
+
+    def test_accepts_tag_without_v_prefix(self):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(stdout="1.2.3\n")
+            assert _git_version() == "1.2.3"
+
 
 class TestProjectNames:
 
@@ -326,12 +343,14 @@ class TestRenderBuildFiles:
 
     def test_renders_scripts_and_wsgi_into_build_dir(self, tmp_path):
         app = App(id=uuid.uuid4(), name="myapp", port=8080, server=uuid.uuid4())
-        _render_build_files(tmp_path, app, "1.0.0", "myapp")
+        _render_build_files(tmp_path, app, "1.0.0", "myapp", "/home/deployer")
 
         for name in ("kill", "start", "stop", "uwsgi.ini", "wsgi.py"):
             assert (tmp_path / name).exists()
-        # The uwsgi config must carry the app's port.
-        assert "8080" in (tmp_path / "uwsgi.ini").read_text()
+        uwsgi = (tmp_path / "uwsgi.ini").read_text()
+        # The uwsgi config must carry the app's port and the given home dir.
+        assert "8080" in uwsgi
+        assert "/home/deployer" in uwsgi
         # wsgi.py imports from the module name.
         assert "from myapp import" in (tmp_path / "wsgi.py").read_text()
 

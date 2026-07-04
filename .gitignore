@@ -125,9 +125,18 @@ dmypy.json
 
 # WingPro project files
 *.wp?
+# Wing IDE remote-debugging stub (auto-generated)
+wingdbstub.py
 
 # Mac thumbnamils?
 .DS_Store
+
+# Claude Code local state (worktrees, session config)
+.claude/
+
+# Generated deploy artifacts (created at the project root by older deploys)
+/wsgi.py
+/version.txt
 
 # Project-specifics
 *.pdf
