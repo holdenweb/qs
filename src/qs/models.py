@@ -8,7 +8,28 @@ from mongoengine import (
     StringField,
     URLField,
     UUIDField,
+    connect,
 )
+
+# Name of the local MongoDB database that mirrors Opalstack state.
+DB_NAME = "opalstack"
+
+# UUID wire representation for the connection. The models are UUID-heavy, so
+# this MUST be identical everywhere that touches the database (opalsync/new_app
+# write, deploy reads) or UUID lookups silently miss. Pinning it explicitly
+# also silences mongoengine's deprecation warning and is future-proof against
+# pymongo changing the default to 'unspecified'. Change this in ONE place only.
+UUID_REPRESENTATION = "standard"
+
+
+def connect_db(**kwargs):
+    """Connect to the qs MongoDB with an explicit, consistent UUID representation.
+
+    All qs entry points use this rather than calling ``connect`` directly, so
+    the database name and UUID representation can never drift between the write
+    and read paths.
+    """
+    return connect(DB_NAME, uuidRepresentation=UUID_REPRESENTATION, **kwargs)
 
 
 class App(Document):

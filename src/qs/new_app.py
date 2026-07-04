@@ -7,9 +7,8 @@ import sys
 
 import opalstack as ops
 from hu import ObjectDict as OD
-from mongoengine import connect
 
-from qs.models import App
+from qs.models import App, connect_db
 
 # Configuration via environment variables with sensible defaults.
 MANAGER_NAME = os.environ.get("QS_MANAGER_NAME", getpass.getuser())
@@ -62,7 +61,7 @@ def build(argv):
     manager = OD(manager)
     app_mgr = ops.api.AppsManager(api)
 
-    connect(db='opalstack')
+    connect_db()
     for name in names:
         app = create_app(app_mgr, name, manager.id)
         print("Created on port", app.port, file=sys.stderr)

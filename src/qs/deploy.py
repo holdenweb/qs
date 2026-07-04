@@ -11,10 +11,9 @@ from pathlib import Path
 from fabric import Connection
 from fabric.transfer import Transfer
 from jinja2 import Environment, PackageLoader
-from mongoengine import connect
 
 from .create_wsgi import create_wsgi
-from .models import App, Server
+from .models import App, Server, connect_db
 from .version import __version__
 
 logging.basicConfig(level=logging.INFO)
@@ -187,7 +186,7 @@ def deploy(app_name: str):
     This was relatively easy when only using one server, but now we need to
     deal with multiple servers.
     """
-    connect("opalstack")
+    connect_db()
 
     version = _git_version()
     app = _get_app(app_name)

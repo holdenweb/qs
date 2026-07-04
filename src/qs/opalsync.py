@@ -5,9 +5,8 @@ import os
 import sys
 
 import opalstack as ostack
-from mongoengine import connect
 
-from qs.models import TYPE_NAMES, class_for
+from qs.models import TYPE_NAMES, class_for, connect_db
 
 # Derived from qs.models.CLASS_MAP so the sync list can never drift from
 # the set of known document types.
@@ -38,7 +37,7 @@ def main():
     if not token:
         sys.exit("OPALSTACK_TOKEN not found in environment")
     api = ostack.Api(token=token)
-    connect("opalstack")
+    connect_db()
     for type_name in object_type_names:
         print("Grabbing", type_name)
         mgr = getattr(ostack.api, f"{type_name}Manager")(api)
